@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Codex - Enciclopédia de Personagens</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 3em;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #a0a0a0;
+            font-size: 1.1em;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 0.85em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        select, input {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select:hover, input:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            box-shadow: 0 0 10px rgba(78, 205, 196, 0.3);
+        }
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .character-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .character-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--rarity-color);
+        }
+
+        .character-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-color: var(--rarity-color);
+        }
+
+        .character-card.rarity-comum { --rarity-color: #808080; }
+        .character-card.rarity-incomum { --rarity-color: #4CAF50; }
+        .character-card.rarity-raro { --rarity-color: #2196F3; }
+        .character-card.rarity-epico { --rarity-color: #9C27B0; }
+        .character-card.rarity-lendario { --rarity-color: #FF9800; }
+        .character-card.rarity-mitico { --rarity-color: #F44336; }
+
+        .character-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            background: linear-gradient(135deg, rgba(78, 205, 196, 0.2), rgba(255, 107, 107, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+        }
+
+        .character-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .character-info {
+            padding: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .character-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .rarity-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: var(--rarity-color);
+            color: white;
+        }
+
+        .stats-preview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+
+        .stat-label {
+            color: #888;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+
+        .story-preview {
+            color: #aaa;
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin-top: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e1e3f 0%, #2a2a4e 100%);
+            border-radius: 20px;
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+            position: relative;
+            border: 2px solid var(--rarity-color);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-character-image {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid var(--rarity-color);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(135deg, rgba(78, 205, 196, 0.3), rgba(255, 107, 107, 0.3));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5em;
+        }
+
+        .modal-character-image img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .modal-title {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab {
+            padding: 12px 25px;
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+        }
+
+        .tab:hover {
+            color: #ccc;
+        }
+
+        .tab.active {
+            color: white;
+            border-bottom-color: var(--rarity-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats-detailed {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-detailed {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid var(--rarity-color);
+        }
+
+        .stat-detailed-label {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-detailed-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .stat-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--rarity-color), #4ecdc4);
+            border-radius: 10px;
+            transition: width 0.5s;
+        }
+
+        .radar-chart {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .story-content {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 25px;
+            border-radius: 12px;
+            line-height: 1.8;
+            font-size: 1.05em;
+            color: #ccc;
+        }
+
+        .story-content h3 {
+            color: white;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .story-content p {
+            margin-bottom: 15px;
+        }
+
+        .relationships {
+            display: grid;
+            gap: 15px;
+        }
+
+        .relationship-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .relationship-name {
+            font-weight: bold;
+            color: white;
+        }
+
+        .relationship-type {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+            font-size: 1.2em;
+        }
+
+        .github-info {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #4ecdc4;
+        }
+
+        .github-info h3 {
+            color: #4ecdc4;
+            margin-bottom: 10px;
+        }
+
+        .github-info code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #ff6b6b;
+        }
+
+        @media (max-width: 768px) {
+            .character-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-detailed {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚔️ Character Codex ⚔️</h1>
+            <p class="subtitle">Enciclopédia Completa de Personagens</p>
+        </header>
+
+        <div class="github-info">
+            <h3>📸 Como adicionar suas imagens do GitHub:</h3>
+            <p>1. Faça upload das imagens na pasta <code>images/</code> do seu repositório</p>
+            <p>2. Use o caminho: <code>./images/nome-do-arquivo.jpg</code></p>
+            <p>3. Ou use o link completo: <code>https://raw.githubusercontent.com/SEU-USUARIO/REPO/main/images/personagem.jpg</code></p>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>Buscar</label>
+                <input type="text" id="searchInput" placeholder="Nome do personagem...">
+            </div>
+            <div class="filter-group">
+                <label>Raridade</label>
+                <select id="rarityFilter">
+                    <option value="">Todas</option>
+                    <option value="comum">Comum</option>
+                    <option value="incomum">Incomum</option>
+                    <option value="raro">Raro</option>
+                    <option value="epico">Épico</option>
+                    <option value="lendario">Lendário</option>
+                    <option value="mitico">Mítico</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Ordenar Por</label>
+                <select id="sortFilter">
+                    <option value="name">Nome</option>
+                    <option value="power">Força</option>
+                    <option value="defense">Defesa</option>
+                    <option value="rarity">Raridade</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="character-grid" id="characterGrid"></div>
+
+        <div class="no-results" id="noResults" style="display: none;">
+            Nenhum personagem encontrado 😢
+        </div>
+    </div>
+
+    <div class="modal" id="characterModal">
+        <div class="modal-content" id="modalContent">
+            <button class="close-btn" onclick="closeModal()">×</button>
+            <div class="modal-header">
+                <div class="modal-character-image" id="modalImage">👤</div>
+                <h2 class="modal-title" id="modalTitle"></h2>
+                <span class="rarity-badge" id="modalRarity"></span>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab(event, 'stats')">📊 Stats</button>
+                <button class="tab" onclick="switchTab(event, 'story')">📖 História</button>
+                <button class="tab" onclick="switchTab(event, 'relations')">👥 Relações</button>
+            </div>
+
+            <div id="statsTab" class="tab-content active">
+                <div class="stats-detailed" id="statsDetailed"></div>
+                <div class="radar-chart">
+                    <canvas id="radarChart" width="400" height="400"></canvas>
+                </div>
+            </div>
+
+            <div id="storyTab" class="tab-content">
+                <div class="story-content" id="storyContent"></div>
+            </div>
+
+            <div id="relationsTab" class="tab-content">
+                <div class="relationships" id="relationshipsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // 🎮 ADICIONE SEUS PERSONAGENS AQUI!
+        // ========================================
+        
+        let characters = [
+            {
+                id: 1,
+                name: "Kael Shadowblade",
+                rarity: "lendario",
+                // OPÇÃO 1: Caminho relativo (arquivo na pasta images/)
+                image: "./images/kael.jpg",
+                // OPÇÃO 2: URL completa do GitHub
+                // image: "https://raw.githubusercontent.com/SEU-USUARIO/REPO/main/images/kael.jpg",
+                // OPÇÃO 3: Emoji de fallback (se não tiver imagem)
+                emoji: "🗡️",
+                stats: {
+                    power: 95,
+                    defense: 80,
+                    speed: 92,
+                    intelligence: 85,
+                    magic: 88,
+                    stamina: 90
+                },
+                story: `
+                    <h3>Origem</h3>
+                    <p>Nascido nas sombras da antiga cidade de Umbral, Kael cresceu entre assassinos e ladinos. Aos 12 anos, presenciou a destruição de sua vila natal por forças demoníacas, evento que despertou nele poderes ancestrais das sombras.</p>
+                    
+                    <h3>Jornada</h3>
+                    <p>Treinado pelos mestres da Ordem Silenciosa, Kael aperfeiçoou suas habilidades de combate e manipulação das sombras. Sua busca por vingança o levou por todo o reino, enfrentando horrores inimagináveis e fazendo alianças improváveis.</p>
+                    
+                    <h3>Presente</h3>
+                    <p>Hoje, é conhecido como o guardião das fronteiras entre luz e trevas, protegendo o mundo mortal de ameaças sobrenaturais. Suas lâminas gêmeas, forjadas com fragmentos de estrelas cadentes, são temidas por todos que vivem nas sombras.</p>
+                `,
+                relationships: [
+                    { name: "Luna Silvermoon", type: "Aliada / Interesse Romântico" },
+                    { name: "Draven the Corrupt", type: "Arqui-inimigo" },
+                    { name: "Master Zenith", type: "Mentor" }
+                ]
+            },
+            {
+                id: 2,
+                name: "Luna Silvermoon",
+                rarity: "epico",
+                image: "./images/luna.jpg",
+                emoji: "🌙",
+                stats: {
+                    power: 70,
+                    defense: 85,
+                    speed: 78,
+                    intelligence: 92,
+                    magic: 95,
+                    stamina: 80
+                },
+                story: `
+                    <h3>O Despertar</h3>
+                    <p>Luna descobriu seus poderes mágicos durante um eclipse lunar total. Descendente de uma linhagem de magas lunares, ela é capaz de manipular a luz da lua e criar ilusões poderosas.</p>
+                    
+                    <h3>A Academia</h3>
+                    <p>Estudou na renomada Academia Arcana, onde se tornou a aluna mais promissora em décadas. Seus feitiços de proteção salvaram a academia de um ataque de dragões sombrios.</p>
+                    
+                    <h3>Missão Atual</h3>
+                    <p>Trabalha ao lado de Kael, combinando magia e combate para proteger o reino. Sua sabedoria e compaixão equilibram a natureza mais impulsiva de seu parceiro.</p>
+                `,
+                relationships: [
+                    { name: "Kael Shadowblade", type: "Parceiro de batalha" },
+                    { name: "Arch Mage Celeste", type: "Mentora" },
+                    { name: "Prince Aldric", type: "Protegido" }
+                ]
+            }
+            
+            // ✨ ADICIONE MAIS PERSONAGENS AQUI!
+            // Copie o modelo acima e modifique os dados
+        ];
+
+        let currentCharacter = null;
+
+        // Renderizar personagens
+        function renderCharacters() {
+            const grid = document.getElementById('characterGrid');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const rarityFilter = document.getElementById('rarityFilter').value;
+            const sortBy = document.getElementById('sortFilter').value;
+
+            let filtered = characters.filter(char => {
+                const matchesSearch = char.name.toLowerCase().includes(searchTerm);
+                const matchesRarity = !rarityFilter || char.rarity === rarityFilter;
+                return matchesSearch && matchesRarity;
+            });
+
+            // Ordenação
+            filtered.sort((a, b) => {
+                if (sortBy === 'name') return a.name.localeCompare(b.name);
+                if (sortBy === 'power') return b.stats.power - a.stats.power;
+                if (sortBy === 'defense') return b.stats.defense - a.stats.defense;
+                if (sortBy === 'rarity') {
+                    const rarityOrder = { comum: 1, incomum: 2, raro: 3, epico: 4, lendario: 5, mitico: 6 };
+                    return rarityOrder[b.rarity] - rarityOrder[a.rarity];
+                }
+            });
+
+            if (filtered.length === 0) {
+                grid.style.display = 'none';
+                document.getElementById('noResults').style.display = 'block';
+                return;
+            }
+
+            grid.style.display = 'grid';
+            document.getElementById('noResults').style.display = 'none';
+
+            grid.innerHTML = filtered.map(char => `
+                <div class="character-card rarity-${char.rarity}" onclick="openCharacter(${char.id})">
+                    <div class="character-image">
+                        ${char.image ? `<img src="${char.image}" alt="${char.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='${char.emoji || '👤'}'">` : `${char.emoji || '👤'}`}
+                    </div>
+                    <div class="character-info">
+                        <div class="card-header">
+                            <div class="character-name">${char.name}</div>
+                            <div class="rarity-badge">${char.rarity}</div>
+                        </div>
+                        <div class="stats-preview">
+                            <div class="stat-item">
+                                <span class="stat-label">⚔️ Força</span>
+                                <span class="stat-value">${char.stats.power}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">🛡️ Defesa</span>
+                                <span class="stat-value">${char.stats.defense}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">⚡ Velocidade</span>
+                                <span class="stat-value">${char.stats.speed}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">🧠 Inteligência</span>
+                                <span class="stat-value">${char.stats.intelligence}</span>
+                            </div>
+                        </div>
+                        <div class="story-preview">${extractPreview(char.story)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function extractPreview(story) {
+            const text = story.replace(/<[^>]*>/g, '');
+            return text.substring(0, 120) + '...';
+        }
+
+        function openCharacter(id) {
+            currentCharacter = characters.find(c => c.id === id);
+            if (!currentCharacter) return;
+
+            const modal = document.getElementById('characterModal');
+            const content = document.getElementById('modalContent');
+            
+            content.style.setProperty('--rarity-color', getRarityColor(currentCharacter.rarity));
+            
+            // Update image
+            const modalImage = document.getElementById('modalImage');
+            if (currentCharacter.image) {
+                modalImage.innerHTML = `<img src="${currentCharacter.image}" alt="${currentCharacter.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='${currentCharacter.emoji || '👤'}'">`;
+            } else {
+                modalImage.innerHTML = currentCharacter.emoji || '👤';
+            }
+            
+            document.getElementById('modalTitle').textContent = currentCharacter.name;
+            document.getElementById('modalRarity').textContent = currentCharacter.rarity;
+
+            renderStats();
+            renderStory();
+            renderRelationships();
+            
+            modal.classList.add('active');
+            
+            // Activate first tab
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelector('.tab').classList.add('active');
+            document.getElementById('statsTab').classList.add('active');
+            
+            setTimeout(drawRadarChart, 100);
+        }
+
+        function closeModal() {
+            document.getElementById('characterModal').classList.remove('active');
+        }
+
+        function switchTab(event, tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+
+            if (tabName === 'stats') {
+                setTimeout(drawRadarChart, 100);
+            }
+        }
+
+        function renderStats() {
+            const container = document.getElementById('statsDetailed');
+            const stats = currentCharacter.stats;
+            
+            container.innerHTML = Object.entries(stats).map(([key, value]) => {
+                const labels = {
+                    power: '⚔️ Força',
+                    defense: '🛡️ Defesa',
+                    speed: '⚡ Velocidade',
+                    intelligence: '🧠 Inteligência',
+                    magic: '✨ Magia',
+                    stamina: '💪 Resistência'
+                };
+                
+                return `
+                    <div class="stat-detailed">
+                        <div class="stat-detailed-label">${labels[key]}</div>
+                        <div class="stat-detailed-value">${value}</div>
+                        <div class="stat-bar">
+                            <div class="stat-bar-fill" style="width: ${value}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStory() {
+            document.getElementById('storyContent').innerHTML = currentCharacter.story;
+        }
+
+        function renderRelationships() {
+            const container = document.getElementById('relationshipsContent');
+            
+            if (!currentCharacter.relationships || currentCharacter.relationships.length === 0) {
+                container.innerHTML = '<p style="color: #888; text-align: center;">Nenhuma relação registrada.</p>';
+                return;
+            }
+
+            container.innerHTML = currentCharacter.relationships.map(rel => `
+                <div class="relationship-item">
+                    <div>
+                        <div class="relationship-name">${rel.name}</div>
+                        <div class="relationship-type">${rel.type}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function drawRadarChart() {
+            const canvas = document.getElementById('radarChart');
+            const ctx = canvas.getContext('2d');
+            const stats = currentCharacter.stats;
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 150;
+            const statsArray = Object.values(stats);
+            const labels = ['Força', 'Defesa', 'Velocidade', 'Inteligência', 'Magia', 'Resistência'];
+            const numStats = statsArray.length;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Desenhar grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 1; i <= 5; i++) {
+                ctx.beginPath();
+                for (let j = 0; j <= numStats; j++) {
+                    const angle = (Math.PI * 2 * j) / numStats - Math.PI / 2;
+                    const x = centerX + Math.cos(angle) * radius * (i / 5);
+                    const y = centerY + Math.sin(angle) * radius * (i / 5);
+                    if (j === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.stroke();
+            }
+
+            // Desenhar linhas dos eixos
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            for (let i = 0; i < numStats; i++) {
+                const angle = (Math.PI * 2 * i) / numStats - Math.PI / 2;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(
+                    centerX + Math.cos(angle) * radius,
+                    centerY + Math.sin(angle) * radius
+                );
+                ctx.stroke();
+            }
+
+            // Desenhar labels
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            for (let i = 0; i < numStats; i++) {
+                const angle = (Math.PI * 2 * i) / numStats - Math.PI / 2;
+                const x = centerX + Math.cos(angle) * (radius + 30);
+                const y = centerY + Math.sin(angle) * (radius + 30);
+                ctx.fillText(labels[i], x, y);
+            }
+
+            // Desenhar dados do personagem
+            const color = getRarityColor(currentCharacter.rarity);
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color.replace(')', ', 0.3)').replace('rgb', 'rgba');
+            ctx.lineWidth = 3;
+
+            ctx.beginPath();
+            for (let i = 0; i <= numStats; i++) {
+                const stat = statsArray[i % numStats];
+                const angle = (Math.PI * 2 * i) / numStats - Math.PI / 2;
+                const distance = (stat / 100) * radius;
+                const x = centerX + Math.cos(angle) * distance;
+                const y = centerY + Math.sin(angle) * distance;
+                
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Desenhar pontos
+            ctx.fillStyle = color;
+            for (let i = 0; i < numStats; i++) {
+                const stat = statsArray[i];
+                const angle = (Math.PI * 2 * i) / numStats - Math.PI / 2;
+                const distance = (stat / 100) * radius;
+                const x = centerX + Math.cos(angle) * distance;
+                const y = centerY + Math.sin(angle) * distance;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function getRarityColor(rarity) {
+            const colors = {
+                comum: '#808080',
+                incomum: '#4CAF50',
+                raro: '#2196F3',
+                epico: '#9C27B0',
+                lendario: '#FF9800',
+                mitico: '#F44336'
+            };
+            return colors[rarity] || '#808080';
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', renderCharacters);
+        document.getElementById('rarityFilter').addEventListener('change', renderCharacters);
+        document.getElementById('sortFilter').addEventListener('change', renderCharacters);
+
+        // Fechar modal ao clicar fora
+        document.getElementById('characterModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Inicializar
+        renderCharacters();
+    </script>
+</body>
+</html>
