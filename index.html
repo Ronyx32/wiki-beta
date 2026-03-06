@@ -131,7 +131,35 @@
         .character-card.rarity-raro { --rarity-color: #2196F3; }
         .character-card.rarity-epico { --rarity-color: #9C27B0; }
         .character-card.rarity-lendario { --rarity-color: #FF9800; }
+        .character-card.rarity-calamidades { --rarity-color: #8B00FF; }
         .character-card.rarity-mitico { --rarity-color: #F44336; }
+        
+        /* Efeito especial para Calamidades */
+        .character-card.rarity-calamidades::before {
+            background: linear-gradient(90deg, #8B00FF, #FF00FF, #00FFFF, #8B00FF);
+            background-size: 300% 100%;
+            animation: calamityGlow 3s ease infinite;
+        }
+        
+        @keyframes calamityGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .character-card.rarity-calamidades:hover {
+            box-shadow: 0 10px 40px rgba(139, 0, 255, 0.6);
+        }
+        
+        .rarity-badge.rarity-calamidades {
+            background: linear-gradient(135deg, #8B00FF, #FF00FF);
+            box-shadow: 0 0 20px rgba(139, 0, 255, 0.5);
+            animation: badgePulse 2s ease infinite;
+        }
+        
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
 
         .character-image {
             width: 100%;
@@ -416,6 +444,89 @@
             margin-bottom: 15px;
         }
 
+        .abilities-content {
+            display: grid;
+            gap: 20px;
+        }
+
+        .ability-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid var(--rarity-color);
+            transition: all 0.3s;
+        }
+
+        .ability-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+
+        .ability-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .ability-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .ability-type {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ability-type.ativa {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+        }
+
+        .ability-type.passiva {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+        }
+
+        .ability-type.ultimate {
+            background: linear-gradient(135deg, #8B00FF, #FF00FF);
+            box-shadow: 0 0 15px rgba(139, 0, 255, 0.4);
+        }
+
+        .ability-description {
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .ability-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ability-stat {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+        }
+
+        .ability-stat-label {
+            color: #888;
+        }
+
+        .ability-stat-value {
+            color: var(--rarity-color);
+            font-weight: bold;
+        }
+
         .relationships {
             display: grid;
             gap: 15px;
@@ -513,8 +624,9 @@
                     <option value="incomum">Incomum</option>
                     <option value="raro">Raro</option>
                     <option value="epico">Épico</option>
-                    <option value="lendario">Lendário</option>
                     <option value="mitico">Mítico</option>
+                    <option value="lendario">Lendário</option>
+                    <option value="calamidades">Calamidades</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -547,6 +659,7 @@
             <div class="tabs">
                 <button class="tab active" onclick="switchTab(event, 'stats')">📊 Stats</button>
                 <button class="tab" onclick="switchTab(event, 'story')">📖 História</button>
+                <button class="tab" onclick="switchTab(event, 'abilities')">⚡ Habilidades</button>
                 <button class="tab" onclick="switchTab(event, 'relations')">👥 Relações</button>
             </div>
 
@@ -559,6 +672,10 @@
 
             <div id="storyTab" class="tab-content">
                 <div class="story-content" id="storyContent"></div>
+            </div>
+
+            <div id="abilitiesTab" class="tab-content">
+                <div class="abilities-content" id="abilitiesContent"></div>
             </div>
 
             <div id="relationsTab" class="tab-content">
@@ -576,7 +693,7 @@
             {
                 id: 1,
                 name: "Kael Shadowblade",
-                rarity: "lendario",
+                rarity: "calamidades",
                 // OPÇÃO 1: Caminho relativo (arquivo na pasta images/)
                 image: "./images/Beserker.jpg",
                 // OPÇÃO 2: URL completa do GitHub
@@ -605,6 +722,32 @@
                     { name: "Luna Silvermoon", type: "Aliada / Interesse Romântico" },
                     { name: "Draven the Corrupt", type: "Arqui-inimigo" },
                     { name: "Master Zenith", type: "Mentor" }
+                ],
+                abilities: [
+                    {
+                        name: "Dança das Sombras",
+                        type: "ativa",
+                        description: "Kael se torna um com as sombras, teleportando-se através delas em um raio de 30 metros. Durante 5 segundos após a teleportação, seus ataques causam dano adicional de sombra.",
+                        cooldown: "12s",
+                        cost: "40 Mana",
+                        damage: "150 + 80% de Poder"
+                    },
+                    {
+                        name: "Mestre das Trevas",
+                        type: "passiva",
+                        description: "Kael ganha 25% de velocidade de movimento e regeneração de vida aumentada quando em áreas escuras ou à noite. Inimigos próximos têm sua visão reduzida.",
+                        bonus: "+25% Velocidade",
+                        range: "15m"
+                    },
+                    {
+                        name: "Eclipse Eterno",
+                        type: "ultimate",
+                        description: "Kael invoca uma escuridão absoluta em grande área, cegando inimigos e aumentando drasticamente seu poder. Suas lâminas se tornam pura energia sombria, atravessando defesas.",
+                        cooldown: "120s",
+                        duration: "10s",
+                        damage: "500 + 200% de Poder",
+                        area: "40m de raio"
+                    }
                 ]
             },
             {
@@ -635,6 +778,32 @@
                     { name: "Kael Shadowblade", type: "Parceiro de batalha" },
                     { name: "Arch Mage Celeste", type: "Mentora" },
                     { name: "Prince Aldric", type: "Protegido" }
+                ],
+                abilities: [
+                    {
+                        name: "Luar Místico",
+                        type: "ativa",
+                        description: "Luna canaliza a luz da lua, curando aliados em área e causando dano a inimigos. A cura é mais poderosa durante a noite.",
+                        cooldown: "8s",
+                        healing: "200 + 60% de Magia",
+                        damage: "120 + 40% de Magia"
+                    },
+                    {
+                        name: "Véu Lunar",
+                        type: "passiva",
+                        description: "Luna cria ilusões que confundem inimigos. Ao sofrer dano, tem 30% de chance de criar um clone que dura 3 segundos.",
+                        chance: "30%",
+                        duration: "3s"
+                    },
+                    {
+                        name: "Eclipse Divino",
+                        type: "ultimate",
+                        description: "Luna invoca um eclipse que concede escudo massivo a todos os aliados e silence inimigos. Durante o eclipse, suas magias não têm cooldown.",
+                        cooldown: "100s",
+                        duration: "8s",
+                        shield: "400 + 100% de Magia",
+                        area: "50m de raio"
+                    }
                 ]
             }
             
@@ -663,7 +832,7 @@
                 if (sortBy === 'power') return b.stats.power - a.stats.power;
                 if (sortBy === 'defense') return b.stats.defense - a.stats.defense;
                 if (sortBy === 'rarity') {
-                    const rarityOrder = { comum: 1, incomum: 2, raro: 3, epico: 4, lendario: 5, mitico: 6 };
+                    const rarityOrder = { comum: 1, incomum: 2, raro: 3, epico: 4, mitico: 5, lendario: 6, calamidades: 7 };
                     return rarityOrder[b.rarity] - rarityOrder[a.rarity];
                 }
             });
@@ -738,6 +907,7 @@
 
             renderStats();
             renderStory();
+            renderAbilities();
             renderRelationships();
             
             modal.classList.add('active');
@@ -795,6 +965,51 @@
 
         function renderStory() {
             document.getElementById('storyContent').innerHTML = currentCharacter.story;
+        }
+
+        function renderAbilities() {
+            const container = document.getElementById('abilitiesContent');
+            
+            if (!currentCharacter.abilities || currentCharacter.abilities.length === 0) {
+                container.innerHTML = '<p style="color: #888; text-align: center; padding: 40px;">Nenhuma habilidade registrada.</p>';
+                return;
+            }
+
+            container.innerHTML = currentCharacter.abilities.map(ability => {
+                const stats = Object.entries(ability)
+                    .filter(([key]) => !['name', 'type', 'description'].includes(key))
+                    .map(([key, value]) => {
+                        const labels = {
+                            cooldown: '⏱️ Recarga',
+                            cost: '💧 Custo',
+                            damage: '⚔️ Dano',
+                            healing: '💚 Cura',
+                            duration: '⏳ Duração',
+                            range: '📏 Alcance',
+                            area: '🎯 Área',
+                            bonus: '✨ Bônus',
+                            chance: '🎲 Chance',
+                            shield: '🛡️ Escudo'
+                        };
+                        return `
+                            <div class="ability-stat">
+                                <span class="ability-stat-label">${labels[key] || key}</span>
+                                <span class="ability-stat-value">${value}</span>
+                            </div>
+                        `;
+                    }).join('');
+
+                return `
+                    <div class="ability-card">
+                        <div class="ability-header">
+                            <div class="ability-name">${ability.name}</div>
+                            <div class="ability-type ${ability.type}">${ability.type}</div>
+                        </div>
+                        <div class="ability-description">${ability.description}</div>
+                        ${stats ? `<div class="ability-stats">${stats}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
         }
 
         function renderRelationships() {
@@ -912,6 +1127,7 @@
                 raro: '#2196F3',
                 epico: '#9C27B0',
                 lendario: '#FF9800',
+                calamidades: '#8B00FF',
                 mitico: '#F44336'
             };
             return colors[rarity] || '#808080';
