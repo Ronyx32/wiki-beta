@@ -692,7 +692,7 @@
         let characters = [
             {
                 id: 1,
-                name: "Kael Shadowblade",
+                name: "Astraeus O Berserker das Supernovas ",
                 rarity: "calamidades",
                 // OPÇÃO 1: Caminho relativo (arquivo na pasta images/)
                 image: "./images/Beserker.jpg",
@@ -702,51 +702,52 @@
                 emoji: "🗡️",
                 stats: {
                     power: 95,
-                    defense: 80,
-                    speed: 92,
-                    intelligence: 85,
-                    magic: 88,
-                    stamina: 90
+                    defense: 79,
+                    speed: 99,
+                    intelligence: 80,
+                    magic: 90,
+                    stamina: 99
                 },
                 story: `
                     <h3>Origem</h3>
-                    <p>Nascido nas sombras da antiga cidade de Umbral, Kael cresceu entre assassinos e ladinos. Aos 12 anos, presenciou a destruição de sua vila natal por forças demoníacas, evento que despertou nele poderes ancestrais das sombras.</p>
+                    <p>Astraeus pode ser um contratempo no mesmo universo da Nebulia. Talvez ele seja um humano que foi exposto ao núcleo de uma estrela moribunda ou sobreviveu à passagem por um buraco de minhoca instável, que queimou seu sistema nervoso e reescreveu seu DNA. Agora, seu corpo não funciona mais com energia biológica normal, mas com uma versão caótica e supercarregada da energia cósmica que a Nebulia consome com elegância.</p>
                     
                     <h3>Jornada</h3>
-                    <p>Treinado pelos mestres da Ordem Silenciosa, Kael aperfeiçoou suas habilidades de combate e manipulação das sombras. Sua busca por vingança o levou por todo o reino, enfrentando horrores inimagináveis e fazendo alianças improváveis.</p>
+                    <p> ele se alimenta do caos. Ele vagueia de planeta em planeta ou de dimensão em dimensão, buscando os oponentes mais fortes que pode encontrar, não por glória, ms pela simples necessidade de sentir a euforia da luta e evitar que sua energia interna o consuma em paz.</p>
                     
                     <h3>Presente</h3>
-                    <p>Hoje, é conhecido como o guardião das fronteiras entre luz e trevas, protegendo o mundo mortal de ameaças sobrenaturais. Suas lâminas gêmeas, forjadas com fragmentos de estrelas cadentes, são temidas por todos que vivem nas sombras.</p>
+                    <p>Astraeus é a personificação do caos e da violência celestial. Fora de combate, ele pode parecer apático, entediado e até um pouco lento, como se estivesse sempre sonhando acordado. No entanto, o menor sinal de conflito acende uma chave em seu cérebro.</p>
                 `,
                 relationships: [
-                    { name: "Luna Silvermoon", type: "Aliada / Interesse Romântico" },
-                    { name: "Draven the Corrupt", type: "Arqui-inimigo" },
+                    { name: "?", type: "Aliada / Interesse Romântico" },
+                    { name: "Nebula", type: "Arqui-inimigo" },
                     { name: "Master Zenith", type: "Mentor" }
                 ],
                 abilities: [
                     {
-                        name: "Dança das Sombras",
+                        name: "Meteoro Punho",
                         type: "ativa",
-                        description: "Kael se torna um com as sombras, teleportando-se através delas em um raio de 30 metros. Durante 5 segundos após a teleportação, seus ataques causam dano adicional de sombra.",
+                        description: "Um soco desferido em velocidade tão alta que incendeia o ar, criando a ilusão de um meteoro.",
                         cooldown: "12s",
-                        cost: "40 Mana",
+                        cost: "40 energia",
                         damage: "150 + 80% de Poder"
                     },
                     {
-                        name: "Mestre das Trevas",
+                        name: "Coração de Supernova",
                         type: "passiva",
-                        description: "Kael ganha 25% de velocidade de movimento e regeneração de vida aumentada quando em áreas escuras ou à noite. Inimigos próximos têm sua visão reduzida.",
-                        bonus: "+25% Velocidade",
+                        description: "Quanto mais ele luta, mais sua adrenalina sobe, aumentando exponencialmente.",
+                        bonus: "+90% Velocidade",
+                        damage: "150 + 80% de Poder",
                         range: "15m"
                     },
                     {
-                        name: "Eclipse Eterno",
+                        name: "Nova Final",
                         type: "ultimate",
-                        description: "Kael invoca uma escuridão absoluta em grande área, cegando inimigos e aumentando drasticamente seu poder. Suas lâminas se tornam pura energia sombria, atravessando defesas.",
+                        description: "Seu ataque máximo. Ele concentra toda a sua energia acumulada em um único ponto (geralmente seu punho) e libera tudo em uma explosão cataclísmica que pode nivelar uma área, deixando-o completamente esgotado e vulnerável depois.",
                         cooldown: "120s",
                         duration: "10s",
                         damage: "500 + 200% de Poder",
-                        area: "40m de raio"
+                        area: "4km de raio"
                     }
                 ]
             },
