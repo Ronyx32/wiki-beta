@@ -164,18 +164,19 @@
         .character-image {
             width: 100%;
             height: 220px;
-            object-fit: cover;
             background: linear-gradient(135deg, rgba(78, 205, 196, 0.2), rgba(255, 107, 107, 0.2));
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 4em;
+            overflow: hidden;
         }
 
         .character-image img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            object-position: center;
         }
 
         .character-info {
@@ -254,6 +255,7 @@
             z-index: 1000;
             overflow-y: auto;
             padding: 20px;
+            -webkit-overflow-scrolling: touch;
         }
 
         .modal.active {
@@ -307,7 +309,6 @@
             height: 200px;
             margin: 0 auto 20px;
             border-radius: 50%;
-            object-fit: cover;
             border: 5px solid var(--rarity-color);
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
             background: linear-gradient(135deg, rgba(78, 205, 196, 0.3), rgba(255, 107, 107, 0.3));
@@ -315,13 +316,15 @@
             align-items: center;
             justify-content: center;
             font-size: 5em;
+            overflow: hidden;
         }
 
         .modal-character-image img {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            object-fit: cover;
+            object-fit: contain;
+            object-position: center;
         }
 
         .modal-title {
@@ -593,6 +596,90 @@
 
             .modal-content {
                 padding: 20px;
+                margin: 10px;
+                max-height: 85vh;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                flex-wrap: nowrap;
+            }
+
+            .tabs::-webkit-scrollbar {
+                display: none;
+            }
+
+            .tab {
+                padding: 10px 15px;
+                font-size: 0.9em;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            .modal-title {
+                font-size: 1.8em;
+            }
+
+            .modal-character-image {
+                width: 150px;
+                height: 150px;
+            }
+
+            .character-name {
+                font-size: 1.2em;
+            }
+
+            .filters {
+                gap: 10px;
+                padding: 15px;
+            }
+
+            .filter-group {
+                flex: 1;
+                min-width: 150px;
+            }
+
+            .github-info {
+                font-size: 0.9em;
+                padding: 15px;
+            }
+
+            .ability-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .character-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .modal-content {
+                padding: 15px;
+            }
+
+            .modal-character-image {
+                width: 120px;
+                height: 120px;
+                font-size: 3em;
+            }
+
+            .modal-title {
+                font-size: 1.5em;
+            }
+
+            .tab {
+                padding: 8px 12px;
+                font-size: 0.85em;
             }
         }
     </style>
@@ -694,11 +781,7 @@
                 id: 1,
                 name: "Astraeus O Berserker das Supernovas ",
                 rarity: "calamidades",
-                // OPÇÃO 1: Caminho relativo (arquivo na pasta images/)
                 image: "./images/Beserker.jpg",
-                // OPÇÃO 2: URL completa do GitHub
-                // image: "https://raw.githubusercontent.com/SEU-USUARIO/REPO/main/images/kael.jpg",
-                // OPÇÃO 3: Emoji de fallback (se não tiver imagem)
                 emoji: "🗡️",
                 stats: {
                     power: 95,
