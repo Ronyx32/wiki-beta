@@ -1632,3 +1632,284 @@ footer.site-footer {
     .theme-player.is-playing .theme-disc,
     .theme-player.is-playing .theme-waves span { animation: none; }
 }
+
+/* ========================================
+   🖼️ GALERIA DE FOTOS (destaque da ficha)
+   ======================================== */
+.modal-content.has-gallery .modal-header { margin-bottom: 18px; }
+.modal-content.has-gallery .modal-character-image {
+    width: 96px;
+    height: 96px;
+    border-width: 3px;
+    margin-bottom: 12px;
+}
+
+.gallery { margin: 0 0 26px; }
+.gallery[hidden] { display: none; }
+
+.gallery-stage {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #070a1f;
+    border: 1px solid color-mix(in srgb, var(--rarity-color) 45%, transparent);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 40px color-mix(in srgb, var(--rarity-color) 22%, transparent);
+}
+
+.gallery-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+}
+.gallery-track::-webkit-scrollbar { display: none; }
+.gallery-track:focus-visible { box-shadow: inset 0 0 0 3px var(--teal); }
+
+.gallery-slide {
+    position: relative;
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    aspect-ratio: 4 / 3;
+    max-height: min(62vh, 560px);
+    margin: 0;
+    overflow: hidden;
+}
+/* Fundo desfocado com a própria foto, para a foto inteira aparecer sem cortes */
+.gallery-slide::before {
+    content: "";
+    position: absolute;
+    inset: -30px;
+    background: var(--img) center / cover no-repeat;
+    filter: blur(28px) saturate(1.2) brightness(0.6);
+}
+.gallery-open {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: zoom-in;
+}
+.gallery-open img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.gallery-open:focus-visible { box-shadow: inset 0 0 0 3px var(--teal); }
+
+.gallery-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(10, 14, 39, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: white;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.2s var(--ease), opacity 0.2s var(--ease);
+}
+.gallery-nav svg, .lightbox-nav svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.gallery-nav:hover { background: rgba(10, 14, 39, 0.9); }
+.gallery-nav:disabled { opacity: 0.3; cursor: default; }
+.gallery-nav.prev { left: 12px; }
+.gallery-nav.next { right: 12px; }
+.gallery-nav[hidden] { display: none; }
+
+.gallery-count {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(10, 14, 39, 0.75);
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.gallery-count[hidden] { display: none; }
+
+.gallery-caption {
+    text-align: center;
+    color: var(--text-2);
+    font-size: 0.95rem;
+    margin-top: 10px;
+}
+.gallery-caption:empty { display: none; }
+
+.gallery-thumbs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 12px 2px 4px;
+    scrollbar-width: none;
+}
+.gallery-thumbs::-webkit-scrollbar { display: none; }
+.gallery-thumbs[hidden] { display: none; }
+.gallery-thumb {
+    flex: 0 0 auto;
+    width: 64px;
+    height: 64px;
+    padding: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    background: rgba(255, 255, 255, 0.05);
+    opacity: 0.55;
+    cursor: pointer;
+    transition: opacity 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.gallery-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
+.gallery-thumb:hover { opacity: 0.85; }
+.gallery-thumb.is-active { opacity: 1; border-color: var(--rarity-color); }
+
+/* 🔍 Foto ampliada */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 56px 12px 24px;
+    background: rgba(3, 5, 18, 0.95);
+    animation: modalFadeIn 0.2s ease;
+}
+.lightbox[hidden] { display: none; }
+.lightbox-figure {
+    margin: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 0;
+}
+.lightbox-figure img {
+    max-width: 100%;
+    max-height: calc(100% - 40px);
+    object-fit: contain;
+    border-radius: 10px;
+}
+.lightbox-caption { color: var(--text-2); text-align: center; font-size: 0.95rem; }
+.lightbox-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 1.7rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.lightbox-nav {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+.lightbox-nav:hover, .lightbox-close:hover { background: rgba(255, 255, 255, 0.18); }
+.lightbox-nav[hidden] { visibility: hidden; display: grid; }
+
+/* ========================================
+   🎵 PLAYER NO FIM DA FICHA (discreto)
+   ======================================== */
+.theme-player {
+    margin: 32px 0 0;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 356px);
+}
+.theme-player .theme-info { order: -1; }
+
+/* Vídeo bloqueado pelo YouTube: some o player travado, fica só o botão */
+.theme-player.is-blocked { grid-template-columns: 1fr; }
+.theme-player.is-blocked .theme-video,
+.theme-player.is-blocked .theme-controls,
+.theme-player.is-blocked .theme-waves { display: none; }
+.theme-yt-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #ff0033;
+    color: white !important;
+    text-decoration: none;
+    font-weight: 700;
+}
+.theme-yt-link:hover { background: #e0002d; }
+
+/* Botãozinho "tocando" perto do nome */
+.theme-mini {
+    display: flex;
+    width: max-content;
+    align-items: center;
+    gap: 8px;
+    margin: 10px auto 0;
+    padding: 5px 12px 5px 6px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--rarity-color) 50%, transparent);
+    background: color-mix(in srgb, var(--rarity-color) 14%, transparent);
+    color: var(--text);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.theme-mini[hidden] { display: none; }
+.theme-mini:hover { background: color-mix(in srgb, var(--rarity-color) 26%, transparent); }
+.theme-mini-disc {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle, var(--rarity-color) 0 22%, #0c0d1c 24% 30%, transparent 31%),
+        repeating-radial-gradient(circle, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 3px),
+        #15172c;
+}
+.theme-mini.is-playing .theme-mini-disc { animation: discSpin 2.6s linear infinite; }
+
+@media (max-width: 768px) {
+    .theme-player { grid-template-columns: 1fr; }
+    .gallery-slide { aspect-ratio: 4 / 5; max-height: 58vh; }
+    .gallery-nav { width: 38px; height: 38px; }
+    .gallery-nav.prev { left: 8px; }
+    .gallery-nav.next { right: 8px; }
+    .lightbox { grid-template-columns: 1fr; padding: 56px 8px 16px; }
+    .lightbox-nav { position: absolute; bottom: 18px; z-index: 2; }
+    .lightbox-nav.prev { left: 16px; }
+    .lightbox-nav.next { right: 16px; }
+    .lightbox-figure img { max-height: calc(100% - 90px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .theme-mini.is-playing .theme-mini-disc { animation: none; }
+}

@@ -686,6 +686,60 @@
 
         .screen[hidden] { display: none; }
 
+        /* Galeria (editor) */
+        .sub-title {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 6px 0 2px;
+        }
+        .sub-title .opt { font-family: var(--font-body); font-weight: 500; font-size: 0.85rem; color: var(--text-3); }
+        .sub-title + .panel-sub { margin-bottom: 10px; }
+        .gallery-edit-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .gallery-edit-list:empty { display: none; }
+        .gallery-edit-item {
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+        }
+        .gallery-edit-item .thumb {
+            position: relative;
+            aspect-ratio: 4 / 3;
+            background: #070a1f;
+            display: grid;
+            place-items: center;
+        }
+        .gallery-edit-item .thumb img { width: 100%; height: 100%; object-fit: contain; }
+        .gallery-edit-item .badge-new {
+            position: absolute;
+            left: 8px;
+            top: 8px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: rgba(61, 220, 132, 0.9);
+            color: #062b16;
+            font-size: 0.7rem;
+            font-weight: 800;
+        }
+        .gallery-edit-item .tools {
+            display: flex;
+            gap: 6px;
+            padding: 8px;
+            align-items: center;
+        }
+        .gallery-edit-item .tools input { min-height: 38px; padding: 6px 10px; font-size: 0.9rem; }
+        .gallery-edit-item .tools .icon-btn { flex-shrink: 0; }
+        .gallery-edit-item .order { display: flex; gap: 6px; padding: 0 8px 8px; }
+        .gallery-add { position: relative; display: grid; place-items: center; cursor: pointer; }
+        .gallery-add input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+        .gallery-add:focus-within { box-shadow: var(--focus); }
+
         /* Prévia do tema musical */
         .yt-preview {
             display: grid;
@@ -818,10 +872,24 @@
                 </section>
 
                 <!-- 2. Imagem -->
-                <section class="step" data-step="2" data-name="Imagem" hidden>
-                    <h2 class="step-title" tabindex="-1">Imagem do personagem</h2>
-                    <p class="step-lead">Envie do celular ou do computador. A foto é reduzida automaticamente para carregar rápido.</p>
+                <section class="step" data-step="2" data-name="Imagens" hidden>
+                    <h2 class="step-title" tabindex="-1">Imagens do personagem</h2>
+                    <p class="step-lead">Envie do celular ou do computador. As fotos são reduzidas automaticamente para carregar rápido.</p>
+                    <h3 class="sub-title">Imagem principal</h3>
+                    <p class="panel-sub">Aparece no cartão e é a primeira foto da galeria.</p>
                     <div class="panel" id="imagePanel"></div>
+
+                    <h3 class="sub-title">Galeria de fotos <span class="opt">(opcional, até 12)</span></h3>
+                    <p class="panel-sub">Fotos extras que ficam em destaque na ficha do personagem.</p>
+                    <div class="panel" id="galleryPanel">
+                        <div class="gallery-edit-list" id="galleryEditList"></div>
+                        <label class="add-btn gallery-add" id="galleryAdd">
+                            <input type="file" id="galleryFiles" accept="image/*" multiple>
+                            ＋ Adicionar fotos à galeria
+                        </label>
+                        <div class="busy" id="galleryBusy" role="status" hidden><span class="spinner" aria-hidden="true"></span><span id="galleryBusyText"></span></div>
+                        <div class="notice error" id="galleryError" role="alert" hidden></div>
+                    </div>
                 </section>
 
                 <!-- 3. Atributos -->
@@ -1118,6 +1186,7 @@
                 abilities: [],
                 relationships: [],
                 theme: { youtube: '', title: '', artist: '', start: '' },
+                gallery: [],
                 extra: {}
             };
         }
@@ -1130,10 +1199,11 @@
             clearTimeout(draftTimer);
             draftTimer = setTimeout(() => {
                 const ok = store.set(KEYS.draft, JSON.stringify({ state, step: currentStep, savedAt: Date.now() }));
-                if (!ok && state.image.dataUrl) {
-                    // Sem espaço: salva o rascunho sem a foto
+                if (!ok) {
+                    // Sem espaço no aparelho: guarda o rascunho sem as fotos ainda não enviadas
                     const copy = JSON.parse(JSON.stringify(state));
-                    copy.image = { kind: 'none', src: '', dataUrl: '', ext: 'jpg', originalSize: 0, newSize: 0 };
+                    if (copy.image.kind === 'upload') copy.image = { kind: 'none', src: '', dataUrl: '', ext: 'jpg', originalSize: 0, newSize: 0 };
+                    copy.gallery = (copy.gallery || []).filter(g => g.kind !== 'upload');
                     store.set(KEYS.draft, JSON.stringify({ state: copy, step: currentStep, savedAt: Date.now() }));
                 }
             }, 400);
@@ -1190,7 +1260,7 @@
         }
 
         function characterToState(ch) {
-            const known = ['id', 'name', 'rarity', 'image', 'emoji', 'stats', 'story', 'relationships', 'abilities', 'theme'];
+            const known = ['id', 'name', 'rarity', 'image', 'emoji', 'stats', 'story', 'relationships', 'abilities', 'theme', 'gallery'];
             const extra = Object.fromEntries(Object.entries(ch).filter(([k]) => !known.includes(k)));
             return {
                 id: ch.id,
@@ -1211,6 +1281,10 @@
                         .map(([key, value]) => ({ key, value: String(value) }))
                 })),
                 relationships: (ch.relationships || []).map(r => ({ name: r.name || '', type: r.type || '' })),
+                gallery: (Array.isArray(ch.gallery) ? ch.gallery : [])
+                    .map(g => typeof g === 'string' ? { src: g, caption: '' } : { src: (g && g.src) || '', caption: (g && g.caption) || '' })
+                    .filter(g => g.src)
+                    .map(g => ({ kind: 'existing', src: g.src, dataUrl: '', ext: 'jpg', caption: g.caption })),
                 theme: {
                     youtube: (ch.theme && ch.theme.youtube) || '',
                     title: (ch.theme && ch.theme.title) || '',
@@ -1242,7 +1316,15 @@
                         return out;
                     }),
                 // undefined remove o tema ao editar (o JSON não guarda campos undefined)
-                theme: themeFromState(s.theme)
+                theme: themeFromState(s.theme),
+                // Prévia: fotos novas usam a imagem local; ao salvar viram arquivos em images/
+                gallery: (s.gallery || []).length
+                    ? s.gallery.map(g => {
+                        const item = { src: g.kind === 'upload' ? g.dataUrl : g.src };
+                        if (g.caption && g.caption.trim()) item.caption = g.caption.trim();
+                        return item;
+                    })
+                    : undefined
             };
             return ch;
         }
@@ -1464,8 +1546,8 @@
          * Salva tudo em UM commit (foto + characters.json), usando a API Git do GitHub.
          * Se outra alteração chegar no meio, lê de novo e tenta outra vez.
          */
-        async function commitToGitHub({ apply, message, image, onStep }) {
-            let imageBlobSha = null;
+        async function commitToGitHub({ apply, message, images = [], onStep }) {
+            const blobShas = {};
             for (let attempt = 1; attempt <= 3; attempt++) {
                 onStep && onStep('read');
                 const ref = await ghRequest(`/repos/${gh.repo}/git/ref/heads/${encodeURIComponent(gh.branch)}`);
@@ -1475,15 +1557,17 @@
                 const { list: newList, result } = apply(list);
 
                 const tree = [];
-                if (image) {
+                if (images.length) {
                     onStep && onStep('image');
-                    if (!imageBlobSha) {
-                        imageBlobSha = (await ghRequest(`/repos/${gh.repo}/git/blobs`, {
-                            method: 'POST',
-                            body: { content: image.base64, encoding: 'base64' }
-                        })).sha;
+                    for (const img of images) {
+                        if (!blobShas[img.path]) {
+                            blobShas[img.path] = (await ghRequest(`/repos/${gh.repo}/git/blobs`, {
+                                method: 'POST',
+                                body: { content: img.base64, encoding: 'base64' }
+                            })).sha;
+                        }
+                        tree.push({ path: img.path, mode: '100644', type: 'blob', sha: blobShas[img.path] });
                     }
-                    tree.push({ path: image.path, mode: '100644', type: 'blob', sha: imageBlobSha });
                 }
 
                 onStep && onStep('data');
@@ -1687,7 +1771,7 @@
             renderStepDots();
             document.documentElement.style.setProperty('--rarity-color', RARITY_COLOR[state.rarity] || '#4ecdc4');
 
-            if (currentStep === 2) renderImagePanel();
+            if (currentStep === 2) { renderImagePanel(); renderGalleryEditor(); }
             if (currentStep === 3) renderStats();
             if (currentStep === 4) renderStory();
             if (currentStep === 5) renderAbilities();
@@ -1883,6 +1967,60 @@
                 renderImagePanel();
                 showNotice($('#imageError'), 'error', error.message);
             }
+        }
+
+        // 🖼️ Galeria (várias fotos)
+        const MAX_GALLERY = 12;
+
+        function galleryItemSrc(g) {
+            return g.kind === 'upload' ? g.dataUrl : g.src;
+        }
+
+        function renderGalleryEditor() {
+            const list = $('#galleryEditList');
+            list.innerHTML = state.gallery.map((g, i) => `
+                <div class="gallery-edit-item">
+                    <div class="thumb">
+                        <img src="${escapeHtml(galleryItemSrc(g))}" alt="Foto ${i + 1} da galeria" onerror="this.outerHTML='<span class=&quot;field-hint&quot;>⚠️ não carregou</span>'">
+                        ${g.kind === 'upload' ? '<span class="badge-new">NOVA</span>' : ''}
+                    </div>
+                    <div class="tools">
+                        <input type="text" data-gallery="${i}" value="${escapeHtml(g.caption || '')}" maxlength="120" placeholder="Legenda (opcional)" aria-label="Legenda da foto ${i + 1}">
+                        <button type="button" class="icon-btn danger" data-action="remove-gallery" data-index="${i}" aria-label="Remover foto ${i + 1}">🗑️</button>
+                    </div>
+                    <div class="order">
+                        <button type="button" class="icon-btn" data-action="move-gallery" data-index="${i}" data-dir="-1" aria-label="Mover foto ${i + 1} para trás" ${i === 0 ? 'disabled' : ''}>←</button>
+                        <button type="button" class="icon-btn" data-action="move-gallery" data-index="${i}" data-dir="1" aria-label="Mover foto ${i + 1} para frente" ${i === state.gallery.length - 1 ? 'disabled' : ''}>→</button>
+                    </div>
+                </div>
+            `).join('');
+            const full = state.gallery.length >= MAX_GALLERY;
+            $('#galleryAdd').hidden = full;
+            if (full) showNotice($('#galleryError'), 'info', `A galeria chegou ao limite de ${MAX_GALLERY} fotos.`);
+            else if ($('#galleryError').classList.contains('info')) $('#galleryError').hidden = true;
+        }
+
+        async function addGalleryFiles(files) {
+            if (!files.length) return;
+            const room = MAX_GALLERY - state.gallery.length;
+            const toAdd = files.slice(0, room);
+            const errors = [];
+            $('#galleryError').hidden = true;
+            $('#galleryBusy').hidden = false;
+            for (let n = 0; n < toAdd.length; n++) {
+                $('#galleryBusyText').textContent = `Preparando foto ${n + 1} de ${toAdd.length}…`;
+                try {
+                    const result = await processImageFile(toAdd[n]);
+                    state.gallery.push({ kind: 'upload', src: '', caption: '', ...result });
+                    renderGalleryEditor();
+                } catch (error) {
+                    errors.push(`${toAdd[n].name}: ${error.message}`);
+                }
+            }
+            $('#galleryBusy').hidden = true;
+            if (files.length > room) errors.push(`Só cabem ${MAX_GALLERY} fotos; ${files.length - room} ficaram de fora.`);
+            if (errors.length) showNotice($('#galleryError'), 'error', errors.join(' '));
+            saveDraft();
         }
 
         // ========================================
@@ -2093,7 +2231,8 @@
             const storyParts = state.story.filter(p => p.text.trim()).length;
             const items = [
                 ['Nome e raridade', ch.name && ch.rarity, ch.name && ch.rarity ? 'OK' : 'Faltando', 1],
-                ['Imagem', state.image.kind !== 'none', state.image.kind === 'upload' ? 'Nova foto' : state.image.kind === 'none' ? 'Usará o emoji' : 'OK', 2],
+                ['Imagem principal', state.image.kind !== 'none', state.image.kind === 'upload' ? 'Nova foto' : state.image.kind === 'none' ? 'Usará o emoji' : 'OK', 2],
+                ['Galeria', state.gallery.length > 0, state.gallery.length ? `${state.gallery.length} foto(s)` : 'Sem fotos extras', 2],
                 ['História', storyParts > 0, storyParts ? `${storyParts} parte(s)` : 'Vazia', 4],
                 ['Habilidades', ch.abilities.length > 0, `${ch.abilities.length}`, 5],
                 ['Relações', ch.relationships.length > 0, `${ch.relationships.length}`, 6],
@@ -2142,14 +2281,31 @@
             }
 
             const character = stateToCharacter(state);
-            let image = null;
+            const images = [];
+            const stamp = Date.now().toString(36);
+            const slug = slugify(character.name);
             if (state.image.kind === 'upload' && state.image.dataUrl) {
-                const fileName = `${slugify(character.name)}-${Date.now().toString(36)}.${state.image.ext}`;
-                image = { path: `${IMAGE_DIR}/${fileName}`, base64: state.image.dataUrl.split(',')[1] };
+                const fileName = `${slug}-${stamp}.${state.image.ext}`;
+                images.push({ path: `${IMAGE_DIR}/${fileName}`, base64: state.image.dataUrl.split(',')[1] });
                 character.image = `./${IMAGE_DIR}/${fileName}`;
             }
+            if (state.gallery.length) {
+                character.gallery = state.gallery.map((g, i) => {
+                    let src = g.src;
+                    if (g.kind === 'upload' && g.dataUrl) {
+                        const fileName = `${slug}-${stamp}-g${i + 1}.${g.ext}`;
+                        images.push({ path: `${IMAGE_DIR}/${fileName}`, base64: g.dataUrl.split(',')[1] });
+                        src = `./${IMAGE_DIR}/${fileName}`;
+                    }
+                    const item = { src };
+                    if (g.caption && g.caption.trim()) item.caption = g.caption.trim();
+                    return item;
+                });
+            } else {
+                character.gallery = undefined;
+            }
             const isEdit = state.id != null;
-            const skip = image ? [] : ['image'];
+            const skip = images.length ? [] : ['image'];
             const done = [];
 
             showScreen('result');
@@ -2163,7 +2319,7 @@
             let commit;
             try {
                 commit = await commitToGitHub({
-                    image,
+                    images,
                     message: `${isEdit ? 'Atualiza' : 'Adiciona'} personagem: ${character.name} (via editor)`,
                     apply(list) {
                         const copy = list.slice();
@@ -2321,6 +2477,8 @@
                 } else {
                     ab[t.dataset.field] = t.value;
                 }
+            } else if (t.dataset.gallery !== undefined) {
+                state.gallery[Number(t.dataset.gallery)].caption = t.value;
             } else if (t.dataset.theme) {
                 state.theme[t.dataset.theme] = t.value;
                 if (t.dataset.theme === 'youtube') renderThemeFeedback();
@@ -2338,6 +2496,7 @@
         form.addEventListener('change', e => {
             const t = e.target;
             if (t.id === 'imageFile') handleImageFile(t.files[0]);
+            if (t.id === 'galleryFiles') { addGalleryFiles([...t.files]); t.value = ''; }
             if (t.dataset.stat && t.type === 'number') t.value = state.stats[t.dataset.stat];
             if (t.dataset.detail !== undefined && t.dataset.field === 'key') renderAbilities();
         });
@@ -2466,6 +2625,16 @@
                     $('#imagePicker').hidden = false;
                     $('#imageFile').click();
                     break;
+                case 'remove-gallery':
+                    state.gallery.splice(i, 1);
+                    renderGalleryEditor();
+                    break;
+                case 'move-gallery': {
+                    const j = i + Number(btn.dataset.dir);
+                    [state.gallery[i], state.gallery[j]] = [state.gallery[j], state.gallery[i]];
+                    renderGalleryEditor();
+                    break;
+                }
                 case 'remove-image':
                     state.image = { kind: 'none', src: '', dataUrl: '', ext: 'jpg', originalSize: 0, newSize: 0 };
                     renderImagePanel();

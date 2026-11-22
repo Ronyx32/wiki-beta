@@ -108,30 +108,24 @@
                     <div class="modal-character-image" id="modalImage">👤</div>
                     <h2 class="modal-title" id="modalTitle"></h2>
                     <span class="rarity-badge" id="modalRarity"></span>
+                    <button type="button" class="theme-mini" id="themeMini" hidden aria-describedby="themeTitle">
+                        <span class="theme-mini-disc" aria-hidden="true"></span>
+                        <span id="themeMiniText">Tema</span>
+                    </button>
                 </div>
 
-                <!-- 🎵 Tema musical (YouTube) -->
-                <section class="theme-player" id="themePlayer" aria-label="Tema musical" hidden>
-                    <div class="theme-video"><div id="themeVideo"></div></div>
-                    <div class="theme-info">
-                        <div class="theme-top">
-                            <div class="theme-disc" aria-hidden="true"><span class="theme-disc-label" id="themeDiscLabel"></span></div>
-                            <div class="theme-text">
-                                <p class="theme-eyebrow">🎵 Tema musical</p>
-                                <p class="theme-title" id="themeTitle"></p>
-                                <p class="theme-artist" id="themeArtist"></p>
-                            </div>
-                            <div class="theme-waves" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-                        </div>
-                        <div class="theme-controls">
-                            <button type="button" class="theme-btn theme-play" id="themePlayBtn" aria-label="Tocar tema"></button>
-                            <input type="range" class="theme-progress" id="themeProgress" min="0" max="100" step="1" value="0" aria-label="Posição da música" disabled>
-                            <span class="theme-time"><span id="themeElapsed">0:00</span> / <span id="themeDuration">0:00</span></span>
-                            <button type="button" class="theme-btn" id="themeMuteBtn" aria-label="Silenciar" aria-pressed="false"></button>
-                        </div>
-                        <p class="theme-status" id="themeStatus" role="status" aria-live="polite"></p>
+                <!-- 🖼️ Galeria de fotos (destaque da ficha) -->
+                <section class="gallery" id="gallery" aria-label="Galeria de fotos" hidden>
+                    <div class="gallery-stage">
+                        <div class="gallery-track" id="galleryTrack" tabindex="0" aria-label="Fotos do personagem. Use as setas para trocar."></div>
+                        <button type="button" class="gallery-nav prev" id="galleryPrev" aria-label="Foto anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+                        <button type="button" class="gallery-nav next" id="galleryNext" aria-label="Próxima foto"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+                        <span class="gallery-count" id="galleryCount" aria-live="polite"></span>
                     </div>
+                    <p class="gallery-caption" id="galleryCaption"></p>
+                    <div class="gallery-thumbs" id="galleryThumbs"></div>
                 </section>
+
 
                 <div class="tabs" role="tablist" aria-label="Seções do personagem">
                     <button type="button" class="tab active" role="tab" id="tab-stats" aria-controls="statsTab" aria-selected="true" onclick="switchTab(event, 'stats')"><span aria-hidden="true">📊</span> Stats</button>
@@ -158,8 +152,42 @@
                 <div id="relationsTab" class="tab-content" role="tabpanel" aria-labelledby="tab-relations" tabindex="0">
                     <div class="relationships" id="relationshipsContent"></div>
                 </div>
+
+                <!-- 🎵 Tema musical (YouTube) — fica no fim da ficha, discreto -->
+                <section class="theme-player" id="themePlayer" aria-label="Tema musical" hidden>
+                    <div class="theme-video"><div id="themeVideo"></div></div>
+                    <div class="theme-info">
+                        <div class="theme-top">
+                            <div class="theme-disc" aria-hidden="true"><span class="theme-disc-label" id="themeDiscLabel"></span></div>
+                            <div class="theme-text">
+                                <p class="theme-eyebrow">🎵 Tema musical</p>
+                                <p class="theme-title" id="themeTitle"></p>
+                                <p class="theme-artist" id="themeArtist"></p>
+                            </div>
+                            <div class="theme-waves" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+                        </div>
+                        <div class="theme-controls">
+                            <button type="button" class="theme-btn theme-play" id="themePlayBtn" aria-label="Tocar tema"></button>
+                            <input type="range" class="theme-progress" id="themeProgress" min="0" max="100" step="1" value="0" aria-label="Posição da música" disabled>
+                            <span class="theme-time"><span id="themeElapsed">0:00</span> / <span id="themeDuration">0:00</span></span>
+                            <button type="button" class="theme-btn" id="themeMuteBtn" aria-label="Silenciar" aria-pressed="false"></button>
+                        </div>
+                        <p class="theme-status" id="themeStatus" role="status" aria-live="polite"></p>
+                    </div>
+                </section>
             </div>
         </div>
+    </div>
+
+    <!-- 🔍 Foto ampliada -->
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Foto ampliada" hidden>
+        <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Fechar foto">×</button>
+        <button type="button" class="lightbox-nav prev" id="lightboxPrev" aria-label="Foto anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <figure class="lightbox-figure">
+            <img id="lightboxImg" alt="">
+            <figcaption class="lightbox-caption" id="lightboxCaption"></figcaption>
+        </figure>
+        <button type="button" class="lightbox-nav next" id="lightboxNext" aria-label="Próxima foto"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
 
     <script>
@@ -385,6 +413,7 @@
             renderStory();
             renderAbilities();
             renderRelationships();
+            renderGallery(currentCharacter);
             startTheme(currentCharacter);
 
             modal.classList.add('active');
@@ -404,6 +433,7 @@
             modal.classList.remove('active');
             modal.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('modal-open');
+            document.getElementById('lightbox').hidden = true;
             stopTheme();
             if (lastFocusedElement && document.contains(lastFocusedElement)) {
                 lastFocusedElement.focus({ preventScroll: true });
@@ -704,6 +734,20 @@
             const modal = document.getElementById('characterModal');
             if (!modal.classList.contains('active')) return;
 
+            // Com a foto ampliada aberta, o teclado controla só ela
+            if (!document.getElementById('lightbox').hidden) {
+                if (e.key === 'Escape') { e.preventDefault(); closeLightbox(); }
+                else if (e.key === 'ArrowRight') { e.preventDefault(); stepLightbox(1); }
+                else if (e.key === 'ArrowLeft') { e.preventDefault(); stepLightbox(-1); }
+                else if (e.key === 'Tab') {
+                    const items = [...document.querySelectorAll('#lightbox button')].filter(b => b.offsetParent !== null);
+                    const i = items.indexOf(document.activeElement);
+                    e.preventDefault();
+                    items[(i + (e.shiftKey ? -1 : 1) + items.length) % items.length].focus();
+                }
+                return;
+            }
+
             if (e.key === 'Escape') {
                 e.preventDefault();
                 closeModal();
@@ -751,6 +795,190 @@
                 }
             }, 150);
         });
+
+        // ========================================
+        // 🖼️ GALERIA DE FOTOS
+        // Cada personagem pode ter: "gallery": [{ "src": "./images/foto.jpg", "caption": "legenda" }]
+        // A imagem principal ("image") entra como primeira foto.
+        // ========================================
+        const galleryState = { items: [], index: 0, scrollTimer: null };
+
+        function galleryItemsFor(character) {
+            const items = [];
+            const seen = new Set();
+            const add = (src, caption) => {
+                if (!src || seen.has(src)) return;
+                seen.add(src);
+                items.push({ src, caption: (caption || '').trim() });
+            };
+            add(character.image, '');
+            (Array.isArray(character.gallery) ? character.gallery : []).forEach(item => {
+                if (typeof item === 'string') add(item, '');
+                else if (item && item.src) add(item.src, item.caption);
+            });
+            return items;
+        }
+
+        function renderGallery(character) {
+            galleryState.items = galleryItemsFor(character);
+            galleryState.index = 0;
+            drawGallery();
+        }
+
+        function drawGallery() {
+            const section = document.getElementById('gallery');
+            const items = galleryState.items;
+            const name = currentCharacter ? currentCharacter.name.trim() : '';
+            section.hidden = items.length === 0;
+            document.getElementById('modalContent').classList.toggle('has-gallery', items.length > 0);
+            if (!items.length) return;
+
+            const track = document.getElementById('galleryTrack');
+            track.innerHTML = items.map((item, i) => `
+                <figure class="gallery-slide" style="--img: url('${escapeHtml(item.src)}')">
+                    <button type="button" class="gallery-open" data-index="${i}" aria-label="Ampliar foto ${i + 1} de ${items.length}">
+                        <img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.caption || `${name} — foto ${i + 1}`)}" ${i === 0 ? '' : 'loading="lazy"'} decoding="async" onerror="handleGalleryError(${i})">
+                    </button>
+                </figure>
+            `).join('');
+            track.scrollLeft = 0;
+
+            const many = items.length > 1;
+            document.getElementById('galleryPrev').hidden = !many;
+            document.getElementById('galleryNext').hidden = !many;
+            document.getElementById('galleryCount').hidden = !many;
+            const thumbs = document.getElementById('galleryThumbs');
+            thumbs.hidden = !many;
+            thumbs.innerHTML = many ? items.map((item, i) => `
+                <button type="button" class="gallery-thumb" data-index="${i}" aria-label="Ver foto ${i + 1} de ${items.length}">
+                    <img src="${escapeHtml(item.src)}" alt="" loading="lazy" decoding="async">
+                </button>
+            `).join('') : '';
+            updateGalleryUi();
+        }
+
+        // Foto que não carrega sai da galeria
+        function handleGalleryError(index) {
+            const failed = galleryState.items[index];
+            if (!failed) return;
+            galleryState.items = galleryState.items.filter(item => item !== failed);
+            galleryState.index = 0;
+            drawGallery();
+        }
+
+        function updateGalleryUi() {
+            const { items, index } = galleryState;
+            document.getElementById('galleryCount').textContent = `${index + 1} / ${items.length}`;
+            document.getElementById('galleryCaption').textContent = items[index] ? items[index].caption : '';
+            document.getElementById('galleryPrev').disabled = index === 0;
+            document.getElementById('galleryNext').disabled = index === items.length - 1;
+            document.querySelectorAll('.gallery-thumb').forEach((thumb, i) => {
+                thumb.classList.toggle('is-active', i === index);
+                if (i === index) thumb.setAttribute('aria-current', 'true');
+                else thumb.removeAttribute('aria-current');
+            });
+            const active = document.querySelector('.gallery-thumb.is-active');
+            if (active) {
+                const strip = document.getElementById('galleryThumbs');
+                strip.scrollTo({ left: active.offsetLeft - strip.clientWidth / 2 + active.clientWidth / 2, behavior: prefersReducedMotion.matches ? 'auto' : 'smooth' });
+            }
+        }
+
+        function goToSlide(index) {
+            const track = document.getElementById('galleryTrack');
+            galleryState.index = Math.max(0, Math.min(galleryState.items.length - 1, index));
+            track.scrollTo({ left: galleryState.index * track.clientWidth, behavior: prefersReducedMotion.matches ? 'auto' : 'smooth' });
+            updateGalleryUi();
+        }
+
+        document.getElementById('galleryPrev').addEventListener('click', () => goToSlide(galleryState.index - 1));
+        document.getElementById('galleryNext').addEventListener('click', () => goToSlide(galleryState.index + 1));
+        document.getElementById('galleryThumbs').addEventListener('click', e => {
+            const thumb = e.target.closest('.gallery-thumb');
+            if (thumb) goToSlide(Number(thumb.dataset.index));
+        });
+        document.getElementById('galleryTrack').addEventListener('click', e => {
+            const open = e.target.closest('.gallery-open');
+            if (open) openLightbox(Number(open.dataset.index));
+        });
+        // Arrastar com o dedo: descobre em qual foto parou
+        document.getElementById('galleryTrack').addEventListener('scroll', e => {
+            clearTimeout(galleryState.scrollTimer);
+            galleryState.scrollTimer = setTimeout(() => {
+                const track = e.target;
+                const width = Math.max(1, track.clientWidth);
+                const index = Math.round(track.scrollLeft / width);
+                // Só conta quando a foto terminou de encaixar (evita contar no meio da animação)
+                if (Math.abs(track.scrollLeft - index * width) > 4) return;
+                if (index !== galleryState.index) {
+                    galleryState.index = Math.max(0, Math.min(galleryState.items.length - 1, index));
+                    updateGalleryUi();
+                }
+            }, 80);
+        });
+        document.getElementById('galleryTrack').addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') { e.preventDefault(); goToSlide(galleryState.index + 1); }
+            if (e.key === 'ArrowLeft') { e.preventDefault(); goToSlide(galleryState.index - 1); }
+        });
+        window.addEventListener('resize', () => {
+            const track = document.getElementById('galleryTrack');
+            if (!document.getElementById('gallery').hidden) track.scrollLeft = galleryState.index * track.clientWidth;
+        });
+
+        // 🔍 Foto ampliada
+        let lightboxReturnFocus = null;
+
+        function openLightbox(index) {
+            galleryState.index = index;
+            lightboxReturnFocus = document.activeElement;
+            document.getElementById('lightbox').hidden = false;
+            showLightboxImage();
+            document.getElementById('lightboxClose').focus();
+        }
+
+        function showLightboxImage() {
+            const { items, index } = galleryState;
+            const item = items[index];
+            const img = document.getElementById('lightboxImg');
+            img.src = item.src;
+            img.alt = item.caption || `${currentCharacter ? currentCharacter.name.trim() : ''} — foto ${index + 1}`;
+            document.getElementById('lightboxCaption').textContent =
+                (item.caption ? item.caption + ' · ' : '') + (items.length > 1 ? `${index + 1} / ${items.length}` : '');
+            document.getElementById('lightboxPrev').hidden = items.length < 2;
+            document.getElementById('lightboxNext').hidden = items.length < 2;
+        }
+
+        function stepLightbox(delta) {
+            const total = galleryState.items.length;
+            if (total < 2) return;
+            galleryState.index = (galleryState.index + delta + total) % total;
+            showLightboxImage();
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').hidden = true;
+            goToSlide(galleryState.index);
+            if (lightboxReturnFocus && document.contains(lightboxReturnFocus)) lightboxReturnFocus.focus({ preventScroll: true });
+        }
+
+        document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+        document.getElementById('lightboxPrev').addEventListener('click', () => stepLightbox(-1));
+        document.getElementById('lightboxNext').addEventListener('click', () => stepLightbox(1));
+        document.getElementById('lightbox').addEventListener('click', e => {
+            if (e.target.id === 'lightbox' || e.target.classList.contains('lightbox-figure')) closeLightbox();
+        });
+        // Deslizar o dedo na foto ampliada
+        (() => {
+            let startX = null;
+            const box = document.getElementById('lightbox');
+            box.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+            box.addEventListener('touchend', e => {
+                if (startX === null) return;
+                const dx = e.changedTouches[0].clientX - startX;
+                if (Math.abs(dx) > 50) stepLightbox(dx < 0 ? 1 : -1);
+                startX = null;
+            });
+        })();
 
         // ========================================
         // 🎵 TEMA MUSICAL (YouTube, igual ao site dos namorados)
@@ -826,6 +1054,9 @@
             btn.innerHTML = playing ? PAUSE_SVG : PLAY_SVG;
             btn.setAttribute('aria-label', playing ? 'Pausar tema' : 'Tocar tema');
             document.getElementById('themePlayer').classList.toggle('is-playing', playing);
+            const mini = document.getElementById('themeMini');
+            mini.classList.toggle('is-playing', playing);
+            document.getElementById('themeMiniText').textContent = playing ? 'Pausar tema' : 'Tocar tema';
             clearInterval(theme.timer);
             if (playing) {
                 clearTimeout(theme.autoplayCheck);
@@ -853,10 +1084,20 @@
         }
 
         function themeErrorMessage(code) {
-            if (code === 101 || code === 150) return 'O YouTube não deixou tocar este vídeo aqui (o dono pode ter bloqueado).';
+            if (code === 101 || code === 150) return 'O YouTube não deixou tocar este vídeo aqui.';
             if (code === 100) return 'Esse vídeo não existe mais ou é privado.';
             if (code === 2) return 'O link da música está incorreto.';
             return 'Não foi possível tocar a música agora.';
+        }
+
+        // Quando o YouTube bloqueia (verificação de login/robô, vídeo bloqueado etc.),
+        // esconde o vídeo travado e oferece um botão para ouvir direto no YouTube.
+        function setThemeBlocked(message, id, start) {
+            const box = document.getElementById('themePlayer');
+            box.classList.add('is-blocked');
+            document.getElementById('themeMini').hidden = true;
+            setThemePlaying(false);
+            setThemeStatus(`${message} <a class="theme-yt-link" href="${youTubeLink(id, start)}" target="_blank" rel="noopener">▶ Ouvir no YouTube</a>`);
         }
 
         function youTubeLink(id, start) {
@@ -868,14 +1109,17 @@
             const info = character && character.theme ? parseYouTube(character.theme.youtube) : null;
             clearTimeout(theme.autoplayCheck);
 
+            box.classList.remove('is-blocked');
             if (!info) {
                 box.hidden = true;
+                document.getElementById('themeMini').hidden = true;
                 stopTheme();
                 return;
             }
 
             const start = Number(character.theme.start) || info.start || 0;
             box.hidden = false;
+            document.getElementById('themeMini').hidden = false;
             document.getElementById('themeTitle').textContent = (character.theme.title || '').trim() || `Tema de ${character.name.trim()}`;
             document.getElementById('themeArtist').textContent = (character.theme.artist || '').trim();
             const label = document.getElementById('themeDiscLabel');
@@ -891,7 +1135,7 @@
             try {
                 await loadYouTubeApi();
             } catch {
-                setThemeStatus(`Não foi possível carregar o YouTube. <a href="${youTubeLink(info.id, start)}" target="_blank" rel="noopener">Ouvir no YouTube ↗</a>`);
+                setThemeBlocked('Não foi possível carregar o player do YouTube.', info.id, start);
                 return;
             }
             // O personagem pode ter mudado enquanto a API carregava
@@ -903,7 +1147,6 @@
             } else if (!theme.player) {
                 theme.pendingStart = start;
                 theme.player = new YT.Player('themeVideo', {
-                    host: 'https://www.youtube-nocookie.com',
                     videoId: info.id,
                     playerVars: { autoplay: 1, start, rel: 0, playsinline: 1, modestbranding: 1 },
                     events: {
@@ -920,8 +1163,7 @@
                             if (e.data === YT.PlayerState.CUED) setThemePlaying(false);
                         },
                         onError: e => {
-                            setThemePlaying(false);
-                            setThemeStatus(`${themeErrorMessage(e.data)} <a href="${youTubeLink(theme.videoId, 0)}" target="_blank" rel="noopener">Abrir no YouTube ↗</a>`);
+                            setThemeBlocked(themeErrorMessage(e.data), theme.videoId, 0);
                         },
                         onAutoplayBlocked: () => {
                             setThemePlaying(false);
@@ -936,7 +1178,7 @@
             // Se o navegador bloquear o som automático, avisa para tocar manualmente
             theme.autoplayCheck = setTimeout(() => {
                 if (!theme.playing && !document.getElementById('themePlayer').hidden &&
-                    !/Não foi|não deixou|não existe|incorreto/.test(document.getElementById('themeStatus').textContent)) {
+                    !document.getElementById('themePlayer').classList.contains('is-blocked')) {
                     setThemeStatus('▶ Toque no play para ouvir o tema.');
                 }
             }, 3500);
@@ -950,6 +1192,8 @@
             }
             theme.playing = false;
             document.getElementById('themePlayer').classList.remove('is-playing');
+            document.getElementById('themeMini').classList.remove('is-playing');
+            document.getElementById('themeMiniText').textContent = 'Tocar tema';
         }
 
         function syncMuteButton() {
@@ -963,11 +1207,13 @@
         document.getElementById('themePlayBtn').innerHTML = PLAY_SVG;
         document.getElementById('themeMuteBtn').innerHTML = SOUND_SVG;
 
-        document.getElementById('themePlayBtn').addEventListener('click', () => {
+        function toggleTheme() {
             if (!theme.player || !theme.ready) return;
             if (theme.playing) theme.player.pauseVideo();
             else { setThemeStatus(''); theme.player.playVideo(); }
-        });
+        }
+        document.getElementById('themePlayBtn').addEventListener('click', toggleTheme);
+        document.getElementById('themeMini').addEventListener('click', toggleTheme);
 
         document.getElementById('themeMuteBtn').addEventListener('click', () => {
             if (!theme.player || !theme.ready) return;
