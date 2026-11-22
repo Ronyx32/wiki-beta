@@ -1,0 +1,2357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0e27">
+    <meta name="robots" content="noindex">
+    <title>Editor de Personagens - Character Codex</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="codex.css">
+    <style>
+        /* ========================================
+           ✏️ ESTILOS DO EDITOR (complementam o codex.css)
+           ======================================== */
+        [hidden] { display: none !important; }
+
+        .editor {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 16px var(--gutter) 120px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+            min-height: 44px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-2);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 4px;
+            border-radius: 8px;
+        }
+        .back-link:hover { color: var(--text); }
+
+        .conn-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid var(--border-strong);
+            background: var(--surface);
+            color: var(--text-2);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60%;
+        }
+        .conn-chip::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #f0a020;
+            flex-shrink: 0;
+        }
+        .conn-chip.is-on::before { background: #3ddc84; box-shadow: 0 0 8px #3ddc84; }
+
+        .page-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.6rem, 5vw, 2.2rem);
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 6px;
+        }
+        .page-lead { color: var(--text-2); margin-bottom: 22px; }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: clamp(18px, 4vw, 28px);
+            margin-bottom: 18px;
+        }
+
+        .panel-title {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .panel-sub { color: var(--text-2); font-size: 0.95rem; margin-bottom: 16px; }
+
+        .actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-danger {
+            border-color: rgba(255, 107, 107, 0.5);
+            color: #ffb3b3;
+            background: rgba(255, 107, 107, 0.08);
+        }
+        .btn-danger:hover { background: rgba(255, 107, 107, 0.18); border-color: #ff6b6b; }
+        .btn-sm { min-height: 38px; padding: 6px 14px; font-size: 0.875rem; }
+        .btn[disabled] { opacity: 0.55; cursor: not-allowed; }
+        .btn-block { width: 100%; }
+
+        /* Campos */
+        fieldset { border: none; padding: 0; margin: 0; min-width: 0; }
+        .field-block { margin-bottom: 18px; }
+        .field-block:last-child { margin-bottom: 0; }
+        .field-label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+        .field-label .opt { color: var(--text-3); font-weight: 500; font-size: 0.85rem; }
+        .field-hint { color: var(--text-3); font-size: 0.85rem; margin-top: 6px; }
+        .field-error {
+            color: #ff9b9b;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+        .field-error:empty { display: none; }
+        [aria-invalid="true"] { border-color: #ff6b6b !important; }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font: inherit;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+        }
+        textarea:hover { border-color: rgba(78, 205, 196, 0.45); }
+        textarea:focus-visible {
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.3);
+        }
+        textarea::placeholder { color: var(--text-3); }
+
+        .two-cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Opções em "chips" (raridade, tipo de habilidade) */
+        .choice-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            border: none;
+        }
+        .choice-group legend { margin-bottom: 8px; }
+        .choice {
+            position: relative;
+            cursor: pointer;
+        }
+        .choice input {
+            position: absolute;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+        }
+        .choice .rarity-chip { pointer-events: none; min-height: 42px; }
+        .choice input:checked + .rarity-chip {
+            background: color-mix(in srgb, var(--rarity-color) 34%, transparent);
+            border-color: var(--rarity-color);
+            box-shadow: 0 0 0 1px var(--rarity-color);
+        }
+        .choice input:focus-visible + .rarity-chip { box-shadow: var(--focus); }
+
+        .segmented {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 4px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+        }
+        .segmented .choice span {
+            display: inline-flex;
+            align-items: center;
+            min-height: 38px;
+            padding: 6px 14px;
+            border-radius: 9px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-2);
+        }
+        .segmented .choice input:checked + span { background: var(--surface-3); color: white; }
+        .segmented .choice input:focus-visible + span { box-shadow: var(--focus); }
+
+        .emoji-picks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .emoji-pick {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+        .emoji-pick:hover { background: var(--surface-3); }
+        .emoji-pick[aria-pressed="true"] { border-color: var(--teal); background: rgba(78, 205, 196, 0.15); }
+
+        /* Progresso das etapas */
+        .wizard-head {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            margin: 0 calc(-1 * var(--gutter)) 18px;
+            padding: 12px var(--gutter) 12px;
+            background: rgba(10, 14, 39, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        .wizard-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        .wizard-meta strong { color: var(--text); }
+        .wizard-meta span { color: var(--text-2); }
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            list-style: none;
+        }
+        .steps button {
+            width: 100%;
+            height: 8px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            cursor: pointer;
+            padding: 0;
+            position: relative;
+        }
+        .steps button::after {
+            /* área de toque maior sem mudar o visual */
+            content: '';
+            position: absolute;
+            inset: -12px 0;
+        }
+        .steps button.is-done { background: rgba(78, 205, 196, 0.55); }
+        .steps button[aria-current="step"] { background: linear-gradient(90deg, var(--teal), var(--violet)); }
+
+        .step { animation: fadeIn 0.3s var(--ease); }
+        .step[hidden] { display: none; }
+        .step-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.35rem, 4vw, 1.7rem);
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .step-title:focus { outline: none; }
+        .step-lead { color: var(--text-2); margin-bottom: 18px; }
+
+        /* Barra de ações fixa embaixo */
+        .action-bar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 30;
+            padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom));
+            background: rgba(10, 14, 39, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border);
+        }
+        .action-bar-inner {
+            max-width: 780px;
+            margin: 0 auto;
+            display: flex;
+            gap: 10px;
+        }
+        .action-bar .btn { flex: 1; min-height: 48px; }
+        .action-bar .btn-primary { flex: 2; }
+
+        /* Imagem */
+        .dropzone {
+            position: relative;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            gap: 8px;
+            min-height: 200px;
+            padding: 24px;
+            border: 2px dashed var(--border-strong);
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
+        }
+        .dropzone:hover, .dropzone.is-over { border-color: var(--teal); background: rgba(78, 205, 196, 0.06); }
+        .dropzone:focus-within { box-shadow: var(--focus); }
+        .dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .dropzone-icon { font-size: 2.2rem; }
+        .dropzone strong { font-size: 1.05rem; }
+        .dropzone small { color: var(--text-3); }
+
+        .image-preview {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 16px;
+            align-items: center;
+        }
+        .image-preview .thumb {
+            width: 140px;
+            aspect-ratio: 3 / 4;
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            display: grid;
+            place-items: center;
+            font-size: 3rem;
+        }
+        .image-preview .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
+        .image-info p { margin-bottom: 6px; }
+        .size-note { color: var(--text-2); font-size: 0.9rem; }
+        .size-note strong { color: #3ddc84; }
+
+        .or-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-3);
+            font-size: 0.85rem;
+            margin: 18px 0;
+        }
+        .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        .busy {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-2);
+            padding: 14px 0;
+        }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.15);
+            border-top-color: var(--teal);
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Atributos */
+        .stat-editor {
+            display: grid;
+            gap: 14px;
+        }
+        .stat-row {
+            display: grid;
+            grid-template-columns: 130px 1fr 72px;
+            gap: 12px;
+            align-items: center;
+        }
+        .stat-row label { font-weight: 600; font-size: 0.95rem; }
+        .stat-row input[type="number"] {
+            min-height: 42px;
+            padding: 6px 10px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            min-height: 32px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="range"]:hover { background: transparent; }
+        input[type="range"]:focus-visible { box-shadow: none; }
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 8px;
+            border-radius: 8px;
+            background: linear-gradient(90deg, var(--rarity-color, var(--teal)) 0 var(--fill, 50%), rgba(255,255,255,0.12) var(--fill, 50%));
+        }
+        input[type="range"]::-moz-range-track {
+            height: 8px;
+            border-radius: 8px;
+            background: linear-gradient(90deg, var(--rarity-color, var(--teal)) 0 var(--fill, 50%), rgba(255,255,255,0.12) var(--fill, 50%));
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            margin-top: -8px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--rarity-color, var(--teal));
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--rarity-color, var(--teal));
+        }
+        input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: var(--focus); }
+
+        .mini-radar { max-width: 300px; margin: 18px auto 0; }
+        .mini-radar canvas { width: 100%; aspect-ratio: 1 / 1; display: block; }
+
+        /* Listas (história, habilidades, relações) */
+        .item-list { display: grid; gap: 14px; margin-bottom: 14px; }
+        .item {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--rarity-color, var(--teal));
+            border-radius: 14px;
+            padding: 16px;
+        }
+        .item-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .item-head h3 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-2);
+        }
+        .icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-2);
+            cursor: pointer;
+            display: inline-grid;
+            place-items: center;
+            font-size: 1rem;
+        }
+        .icon-btn:hover { background: var(--surface-3); color: var(--text); }
+        .icon-btn.danger:hover { background: rgba(255, 107, 107, 0.18); color: #ffb3b3; border-color: rgba(255,107,107,0.5); }
+        .icon-btn[disabled] { opacity: 0.35; cursor: default; }
+        .item-tools { display: flex; gap: 6px; }
+
+        .add-btn {
+            width: 100%;
+            min-height: 50px;
+            border-radius: 14px;
+            border: 2px dashed var(--border-strong);
+            background: transparent;
+            color: var(--teal);
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
+        }
+        .add-btn:hover { background: rgba(78, 205, 196, 0.07); border-color: var(--teal); }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) 38px;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .detail-row select, .detail-row input { min-height: 42px; padding-top: 6px; padding-bottom: 6px; }
+        .link-add {
+            background: none;
+            border: none;
+            color: var(--teal);
+            font-weight: 600;
+            cursor: pointer;
+            padding: 8px 2px;
+        }
+        .link-add:hover { text-decoration: underline; }
+
+        .rel-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 38px;
+            gap: 8px;
+            align-items: end;
+        }
+
+        .empty-hint {
+            color: var(--text-3);
+            text-align: center;
+            padding: 18px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 14px;
+        }
+
+        /* Revisão */
+        .review-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+            gap: 20px;
+            align-items: start;
+        }
+        .review-grid .character-card { animation: none; }
+        .checklist { list-style: none; display: grid; gap: 8px; }
+        .checklist li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+        }
+        .checklist .ok { color: #3ddc84; font-weight: 700; }
+        .checklist .warn { color: #f0b040; font-weight: 700; }
+        .checklist button { margin-left: auto; }
+
+        /* Lista de personagens */
+        .char-list { list-style: none; display: grid; gap: 10px; }
+        .char-row {
+            display: grid;
+            grid-template-columns: 52px minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+        }
+        .char-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+            font-size: 1.6rem;
+            background: color-mix(in srgb, var(--rarity-color) 25%, transparent);
+            border: 1px solid color-mix(in srgb, var(--rarity-color) 60%, transparent);
+        }
+        .char-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
+        .char-name {
+            font-weight: 700;
+            line-height: 1.3;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow-wrap: anywhere;
+        }
+        .char-row .rarity-badge { font-size: 0.65rem; padding: 3px 8px; display: inline-block; margin-top: 4px; }
+        .char-actions { display: flex; gap: 6px; }
+
+        .draft-banner {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(240, 176, 64, 0.45);
+            background: rgba(240, 176, 64, 0.08);
+            margin-bottom: 18px;
+        }
+
+        /* Mensagens */
+        .notice {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            margin-top: 12px;
+            border: 1px solid;
+        }
+        .notice[hidden] { display: none; }
+        .notice.error { color: #ffc2c2; background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.45); }
+        .notice.success { color: #b8f5d2; background: rgba(61, 220, 132, 0.1); border-color: rgba(61, 220, 132, 0.4); }
+        .notice.info { color: var(--text-2); background: rgba(255,255,255,0.04); border-color: var(--border); }
+
+        .token-field { position: relative; }
+        .token-field input { padding-right: 92px; font-family: ui-monospace, Consolas, monospace; }
+        .token-toggle {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            min-height: 34px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: none;
+            background: var(--surface-3);
+            color: var(--text);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            min-height: 44px;
+        }
+        .check input { width: 20px; height: 20px; min-height: 0; accent-color: var(--teal); }
+
+        .how-to { margin-top: 14px; }
+        .how-to summary {
+            cursor: pointer;
+            color: var(--teal);
+            font-weight: 600;
+            padding: 8px 0;
+        }
+        .how-to ol { padding-left: 22px; color: var(--text-2); display: grid; gap: 6px; margin-top: 6px; }
+        .how-to a { color: var(--teal); }
+        .how-to code { background: rgba(0,0,0,0.3); padding: 1px 6px; border-radius: 4px; color: #ff9b9b; }
+
+        /* Salvando / resultado */
+        .save-steps { list-style: none; display: grid; gap: 10px; margin: 16px 0; }
+        .save-steps li { display: flex; align-items: center; gap: 10px; color: var(--text-3); }
+        .save-steps li.is-active { color: var(--text); }
+        .save-steps li.is-done { color: #b8f5d2; }
+        .save-steps .dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            display: grid;
+            place-items: center;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+        .save-steps li.is-active .dot { border-color: rgba(255,255,255,0.15); border-top-color: var(--teal); animation: spin 0.8s linear infinite; }
+        .save-steps li.is-done .dot::after { content: '✓'; }
+
+        .result-hero { text-align: center; padding: 12px 0 4px; }
+        .result-hero .big { font-size: 3rem; margin-bottom: 6px; }
+
+        dialog {
+            margin: auto;
+            max-width: min(440px, calc(100% - 32px));
+            width: 100%;
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-strong);
+            background: #171a3d;
+            color: var(--text);
+            box-shadow: 0 25px 80px rgba(0,0,0,0.6);
+        }
+        dialog::backdrop { background: rgba(3, 5, 18, 0.75); backdrop-filter: blur(4px); }
+        dialog h2 { font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 8px; }
+        dialog p { color: var(--text-2); margin-bottom: 18px; }
+        dialog .actions-row { justify-content: flex-end; }
+
+        .screen[hidden] { display: none; }
+
+        @media (max-width: 600px) {
+            .two-cols { grid-template-columns: 1fr; }
+            .stat-row { grid-template-columns: 1fr 72px; }
+            .stat-row input[type="range"] { grid-column: 1 / -1; grid-row: 2; }
+            .image-preview { grid-template-columns: 96px 1fr; }
+            .image-preview .thumb { width: 96px; }
+            .review-grid { grid-template-columns: 1fr; }
+            .detail-row { grid-template-columns: minmax(0, 1fr) 38px; }
+            .detail-row input { grid-column: 1 / 2; }
+            .detail-row select { grid-column: 1 / 2; }
+            .detail-row .icon-btn { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+            .rel-row { grid-template-columns: minmax(0, 1fr) 38px; }
+            .rel-row .field-block:nth-child(2) { grid-column: 1; }
+            .rel-row .icon-btn { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+            .char-actions .btn-text { display: none; }
+            .char-actions { gap: 4px; }
+            .char-actions .btn-sm { min-width: 42px; padding: 6px 10px; }
+            .char-row { grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; padding: 10px; }
+            .char-avatar { width: 44px; height: 44px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="editor">
+        <div class="topbar">
+            <a class="back-link" href="index.html">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+                Voltar ao Codex
+            </a>
+            <span class="conn-chip" id="connChip">Não conectado</span>
+        </div>
+
+        <!-- ===================== TELA INICIAL ===================== -->
+        <section class="screen" id="homeScreen" aria-labelledby="homeTitle">
+            <h1 class="page-title" id="homeTitle">Editor de personagens</h1>
+            <p class="page-lead">Crie ou edite personagens em etapas. Ao salvar, a foto e a ficha vão direto para o seu repositório no GitHub e o site se atualiza sozinho.</p>
+
+            <div class="draft-banner" id="draftBanner" hidden>
+                <span>📝 Você tem um rascunho: <strong id="draftName"></strong></span>
+                <span class="actions-row">
+                    <button type="button" class="btn btn-sm btn-ghost" id="discardDraft">Descartar</button>
+                    <button type="button" class="btn btn-sm btn-primary" id="resumeDraft">Continuar</button>
+                </span>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-block" id="newCharacter" style="min-height: 54px; font-size: 1.05rem; margin-bottom: 18px;">
+                <span aria-hidden="true">＋</span> Novo personagem
+            </button>
+
+            <div class="panel" id="connectPanelHome"></div>
+
+            <div class="panel">
+                <h2 class="panel-title">Personagens no site</h2>
+                <p class="panel-sub" id="listSource">Carregando…</p>
+                <ul class="char-list" id="charList" aria-live="polite"></ul>
+                <div class="notice error" id="listError" role="alert" hidden></div>
+            </div>
+        </section>
+
+        <!-- ===================== ASSISTENTE (ETAPAS) ===================== -->
+        <section class="screen" id="wizardScreen" hidden>
+            <div class="wizard-head">
+                <div class="wizard-meta">
+                    <strong id="wizardMode">Novo personagem</strong>
+                    <span id="stepCounter">Etapa 1 de 7</span>
+                </div>
+                <ol class="steps" id="stepDots" aria-label="Etapas"></ol>
+            </div>
+
+            <form id="wizardForm" novalidate>
+                <!-- 1. Identidade -->
+                <section class="step" data-step="1" data-name="Identidade">
+                    <h2 class="step-title" tabindex="-1">Quem é o personagem?</h2>
+                    <p class="step-lead">O básico para o cartão aparecer no Codex.</p>
+                    <div class="panel">
+                        <div class="field-block">
+                            <label class="field-label" for="f-name">Nome</label>
+                            <input type="text" id="f-name" data-bind="name" maxlength="80" autocomplete="off" placeholder="Ex.: Astraeus, o Berserker" aria-describedby="err-name">
+                            <p class="field-error" id="err-name" aria-live="polite"></p>
+                        </div>
+                        <fieldset class="field-block">
+                            <legend class="field-label">Raridade</legend>
+                            <div class="choice-group" id="rarityChoices" aria-describedby="err-rarity"></div>
+                            <p class="field-error" id="err-rarity" aria-live="polite"></p>
+                        </fieldset>
+                        <div class="field-block">
+                            <label class="field-label" for="f-emoji">Emoji <span class="opt">(aparece quando não há imagem)</span></label>
+                            <input type="text" id="f-emoji" data-bind="emoji" maxlength="8" autocomplete="off" placeholder="👤" style="max-width: 120px; font-size: 1.3rem; text-align: center;">
+                            <div class="emoji-picks" id="emojiPicks"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Imagem -->
+                <section class="step" data-step="2" data-name="Imagem" hidden>
+                    <h2 class="step-title" tabindex="-1">Imagem do personagem</h2>
+                    <p class="step-lead">Envie do celular ou do computador. A foto é reduzida automaticamente para carregar rápido.</p>
+                    <div class="panel" id="imagePanel"></div>
+                </section>
+
+                <!-- 3. Atributos -->
+                <section class="step" data-step="3" data-name="Atributos" hidden>
+                    <h2 class="step-title" tabindex="-1">Atributos</h2>
+                    <p class="step-lead">De 0 a 100. Arraste ou digite o valor.</p>
+                    <div class="panel">
+                        <div class="stat-editor" id="statEditor"></div>
+                        <div class="mini-radar"><canvas id="miniRadar" role="img" aria-label="Prévia do gráfico de atributos"></canvas></div>
+                    </div>
+                </section>
+
+                <!-- 4. História -->
+                <section class="step" data-step="4" data-name="História" hidden>
+                    <h2 class="step-title" tabindex="-1">História</h2>
+                    <p class="step-lead">Divida em partes (ex.: Origem, Jornada, Presente). Deixe uma linha em branco para começar um novo parágrafo.</p>
+                    <div class="item-list" id="storyList"></div>
+                    <button type="button" class="add-btn" data-action="add-story">＋ Adicionar parte da história</button>
+                </section>
+
+                <!-- 5. Habilidades -->
+                <section class="step" data-step="5" data-name="Habilidades" hidden>
+                    <h2 class="step-title" tabindex="-1">Habilidades</h2>
+                    <p class="step-lead">Ataques, passivas e o golpe máximo (ultimate).</p>
+                    <div class="item-list" id="abilityList"></div>
+                    <button type="button" class="add-btn" data-action="add-ability">＋ Adicionar habilidade</button>
+                </section>
+
+                <!-- 6. Relações -->
+                <section class="step" data-step="6" data-name="Relações" hidden>
+                    <h2 class="step-title" tabindex="-1">Relações</h2>
+                    <p class="step-lead">Aliados, rivais, mentores…</p>
+                    <div class="panel">
+                        <div class="item-list" id="relList" style="margin-bottom: 8px;"></div>
+                        <button type="button" class="add-btn" data-action="add-rel">＋ Adicionar relação</button>
+                    </div>
+                    <datalist id="relTypes">
+                        <option value="Aliado(a)"></option>
+                        <option value="Arqui-inimigo"></option>
+                        <option value="Rival"></option>
+                        <option value="Mentor(a)"></option>
+                        <option value="Parceiro(a) de batalha"></option>
+                        <option value="Interesse romântico"></option>
+                        <option value="Família"></option>
+                        <option value="Protegido(a)"></option>
+                    </datalist>
+                </section>
+
+                <!-- 7. Revisar -->
+                <section class="step" data-step="7" data-name="Revisar e salvar" hidden>
+                    <h2 class="step-title" tabindex="-1">Revisar e salvar</h2>
+                    <p class="step-lead">Confira como o cartão vai aparecer no site.</p>
+                    <div class="review-grid">
+                        <div id="reviewCard"></div>
+                        <div>
+                            <ul class="checklist" id="reviewChecklist"></ul>
+                        </div>
+                    </div>
+                    <div class="panel" id="connectPanelReview" style="margin-top: 18px;"></div>
+                    <div class="notice error" id="saveError" role="alert" hidden></div>
+                </section>
+            </form>
+        </section>
+
+        <!-- ===================== SALVANDO / RESULTADO ===================== -->
+        <section class="screen" id="resultScreen" hidden>
+            <div class="panel" aria-live="polite">
+                <div class="result-hero">
+                    <div class="big" id="resultIcon" aria-hidden="true">⏳</div>
+                    <h1 class="page-title" id="resultTitle" tabindex="-1">Salvando…</h1>
+                    <p class="page-lead" id="resultLead" style="margin-bottom: 8px;">Não feche esta página.</p>
+                </div>
+                <ul class="save-steps" id="saveSteps"></ul>
+                <div class="notice error" id="resultError" role="alert" hidden></div>
+                <div class="actions-row" id="resultActions" hidden style="justify-content: center; margin-top: 8px;">
+                    <a class="btn btn-primary" id="viewSiteBtn" href="index.html">Ver no site</a>
+                    <button type="button" class="btn" id="anotherBtn">Criar outro</button>
+                    <button type="button" class="btn btn-ghost" id="backHomeBtn">Voltar à lista</button>
+                </div>
+                <p class="field-hint" id="commitLink" style="text-align: center; margin-top: 12px;"></p>
+            </div>
+        </section>
+    </div>
+
+    <div class="action-bar" id="actionBar" hidden>
+        <div class="action-bar-inner">
+            <button type="button" class="btn" id="prevBtn">← Voltar</button>
+            <button type="button" class="btn btn-primary" id="nextBtn">Continuar →</button>
+        </div>
+    </div>
+
+    <dialog id="confirmDialog" aria-labelledby="confirmTitle">
+        <h2 id="confirmTitle"></h2>
+        <p id="confirmText"></p>
+        <div class="actions-row">
+            <button type="button" class="btn" value="cancel" id="confirmCancel">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="confirmOk">Confirmar</button>
+        </div>
+    </dialog>
+
+    <template id="connectTemplate">
+        <h2 class="panel-title">Conexão com o GitHub</h2>
+        <div data-when="off">
+            <p class="panel-sub">Para salvar, cole sua chave de acesso do GitHub. Ela fica só neste navegador e nunca aparece no site.</p>
+            <div class="field-block">
+                <label class="field-label" data-for="token">Chave de acesso (token)</label>
+                <div class="token-field">
+                    <input type="password" data-id="token" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="github_pat_…">
+                    <button type="button" class="token-toggle" data-action="toggle-token">Mostrar</button>
+                </div>
+            </div>
+            <label class="check"><input type="checkbox" data-id="remember" checked> Lembrar neste aparelho</label>
+            <details class="field-block how-to">
+                <summary>Repositório: <span data-slot="repo"></span> (alterar)</summary>
+                <div class="two-cols" style="margin-top: 8px;">
+                    <div>
+                        <label class="field-label" data-for="repo">Dono/repositório</label>
+                        <input type="text" data-id="repo" autocomplete="off" spellcheck="false" placeholder="usuario/repositorio">
+                    </div>
+                    <div>
+                        <label class="field-label" data-for="branch">Branch</label>
+                        <input type="text" data-id="branch" autocomplete="off" spellcheck="false" placeholder="main">
+                    </div>
+                </div>
+            </details>
+            <button type="button" class="btn btn-primary" data-action="connect">Conectar</button>
+            <div class="notice" data-slot="msg" role="status" hidden></div>
+            <details class="how-to">
+                <summary>Como criar a chave (2 minutos)</summary>
+                <ol>
+                    <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> (logado na sua conta).</li>
+                    <li>Em <b>Token name</b>, escreva <code>Editor Codex</code>. Em <b>Expiration</b>, escolha uma data (ex.: 90 dias).</li>
+                    <li>Em <b>Repository access</b>, marque <b>Only select repositories</b> e escolha <code>wiki-beta</code>.</li>
+                    <li>Em <b>Permissions</b> → <b>Repository permissions</b>, ache <b>Contents</b> e mude para <b>Read and write</b>.</li>
+                    <li>Clique em <b>Generate token</b>, copie a chave (começa com <code>github_pat_</code>) e cole aqui.</li>
+                </ol>
+            </details>
+        </div>
+        <div data-when="on" hidden>
+            <p class="panel-sub" style="margin-bottom: 12px;">✅ Conectado<span data-slot="user"></span> ao repositório <strong data-slot="repo"></strong>.</p>
+            <button type="button" class="btn btn-sm btn-ghost" data-action="disconnect">Desconectar deste aparelho</button>
+        </div>
+    </template>
+
+    <script>
+        // ========================================
+        // ⚙️ CONFIGURAÇÃO
+        // ========================================
+        const DEFAULT_REPO = 'Ronyx32/wiki-beta';
+        const DEFAULT_BRANCH = 'main';
+        const DATA_PATH = 'characters.json';
+        const IMAGE_DIR = 'images';
+        const MAX_IMAGE_SIDE = 1200;
+        const KEYS = {
+            token: 'codex-editor-token',
+            repo: 'codex-editor-repo',
+            draft: 'codex-editor-draft'
+        };
+
+        const RARITIES = [
+            ['comum', 'Comum', '#808080'],
+            ['incomum', 'Incomum', '#4CAF50'],
+            ['raro', 'Raro', '#2196F3'],
+            ['epico', 'Épico', '#9C27B0'],
+            ['mitico', 'Mítico', '#F44336'],
+            ['lendario', 'Lendário', '#FF9800'],
+            ['calamidades', 'Calamidades', '#8B00FF']
+        ];
+        const RARITY_LABEL = Object.fromEntries(RARITIES.map(([k, l]) => [k, l]));
+        const RARITY_COLOR = Object.fromEntries(RARITIES.map(([k, , c]) => [k, c]));
+
+        const STATS = [
+            ['power', '⚔️ Força', 'Força'],
+            ['defense', '🛡️ Defesa', 'Defesa'],
+            ['speed', '⚡ Velocidade', 'Velocidade'],
+            ['intelligence', '🧠 Inteligência', 'Inteligência'],
+            ['magic', '✨ Magia', 'Magia'],
+            ['stamina', '💪 Resistência', 'Resistência']
+        ];
+
+        const ABILITY_TYPES = [['ativa', 'Ativa'], ['passiva', 'Passiva'], ['ultimate', 'Ultimate']];
+        const DETAIL_KEYS = [
+            ['cooldown', '⏱️ Recarga', 'Ex.: 12s'],
+            ['cost', '💧 Custo', 'Ex.: 40 energia'],
+            ['damage', '⚔️ Dano', 'Ex.: 150 + 80% de Poder'],
+            ['healing', '💚 Cura', 'Ex.: 200 + 60% de Magia'],
+            ['duration', '⏳ Duração', 'Ex.: 10s'],
+            ['range', '📏 Alcance', 'Ex.: 15m'],
+            ['area', '🎯 Área', 'Ex.: 50m de raio'],
+            ['bonus', '✨ Bônus', 'Ex.: +90% Velocidade'],
+            ['chance', '🎲 Chance', 'Ex.: 30%'],
+            ['shield', '🛡️ Escudo', 'Ex.: 400 + 100% de Magia']
+        ];
+        const DETAIL_LABEL = Object.fromEntries(DETAIL_KEYS.map(([k, l]) => [k, l]));
+        const EMOJIS = ['👤', '⚔️', '🗡️', '🛡️', '🔥', '🌙', '⭐', '🐉', '👑', '💀', '⚡', '🌊', '🌀', '🧙', '🦊'];
+        const TOTAL_STEPS = 7;
+
+        // ========================================
+        // 🧰 UTILITÁRIOS
+        // ========================================
+        const $ = (sel, root = document) => root.querySelector(sel);
+        const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        const store = {
+            get(key, session) {
+                try { return (session ? sessionStorage : localStorage).getItem(key); } catch { return null; }
+            },
+            set(key, value, session) {
+                try { (session ? sessionStorage : localStorage).setItem(key, value); return true; } catch { return false; }
+            },
+            remove(key) {
+                try { localStorage.removeItem(key); } catch {}
+                try { sessionStorage.removeItem(key); } catch {}
+            }
+        };
+
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1).replace('.', ',') + ' MB';
+        }
+
+        function slugify(text) {
+            return String(text).normalize('NFD').replace(/[̀-ͯ]/g, '')
+                .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'personagem';
+        }
+
+        function utf8ToBase64(text) {
+            const bytes = new TextEncoder().encode(text);
+            let binary = '';
+            for (let i = 0; i < bytes.length; i += 0x8000) {
+                binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+            }
+            return btoa(binary);
+        }
+
+        function base64ToUtf8(b64) {
+            const binary = atob(b64.replace(/\s/g, ''));
+            const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+            return new TextDecoder('utf-8').decode(bytes);
+        }
+
+        // ========================================
+        // 📝 ESTADO DO PERSONAGEM + RASCUNHO
+        // ========================================
+        function blankCharacter() {
+            return {
+                id: null,
+                name: '',
+                rarity: '',
+                emoji: '',
+                image: { kind: 'none', src: '', dataUrl: '', ext: 'jpg', originalSize: 0, newSize: 0 },
+                stats: Object.fromEntries(STATS.map(([k]) => [k, 50])),
+                story: [{ title: 'Origem', text: '' }],
+                abilities: [],
+                relationships: [],
+                extra: {}
+            };
+        }
+
+        let state = blankCharacter();
+        let currentStep = 1;
+        let draftTimer = null;
+
+        function saveDraft() {
+            clearTimeout(draftTimer);
+            draftTimer = setTimeout(() => {
+                const ok = store.set(KEYS.draft, JSON.stringify({ state, step: currentStep, savedAt: Date.now() }));
+                if (!ok && state.image.dataUrl) {
+                    // Sem espaço: salva o rascunho sem a foto
+                    const copy = JSON.parse(JSON.stringify(state));
+                    copy.image = { kind: 'none', src: '', dataUrl: '', ext: 'jpg', originalSize: 0, newSize: 0 };
+                    store.set(KEYS.draft, JSON.stringify({ state: copy, step: currentStep, savedAt: Date.now() }));
+                }
+            }, 400);
+        }
+
+        function readDraft() {
+            try {
+                const raw = store.get(KEYS.draft);
+                if (!raw) return null;
+                const draft = JSON.parse(raw);
+                return draft && draft.state ? draft : null;
+            } catch { return null; }
+        }
+
+        function clearDraft() {
+            clearTimeout(draftTimer);
+            store.remove(KEYS.draft);
+        }
+
+        // História: HTML do site ⇄ partes editáveis
+        function storyHtmlToParts(html) {
+            const parts = [];
+            if (!html) return [{ title: 'Origem', text: '' }];
+            const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html');
+            let current = null;
+            doc.body.firstElementChild.childNodes.forEach(node => {
+                if (node.nodeType === Node.ELEMENT_NODE && /^H[1-6]$/.test(node.tagName)) {
+                    current = { title: node.textContent.trim(), paragraphs: [] };
+                    parts.push(current);
+                    return;
+                }
+                const text = node.nodeType === Node.ELEMENT_NODE
+                    ? (node.innerHTML.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' '))
+                    : node.textContent;
+                const decoded = new DOMParser().parseFromString(`<p>${text}</p>`, 'text/html').body.textContent.trim();
+                if (!decoded) return;
+                if (!current) { current = { title: '', paragraphs: [] }; parts.push(current); }
+                current.paragraphs.push(decoded);
+            });
+            return parts.length
+                ? parts.map(p => ({ title: p.title, text: p.paragraphs.join('\n\n') }))
+                : [{ title: 'Origem', text: '' }];
+        }
+
+        function partsToStoryHtml(parts) {
+            return parts
+                .filter(p => p.title.trim() || p.text.trim())
+                .map(p => {
+                    const paragraphs = p.text.split(/\n\s*\n/).map(t => t.trim()).filter(Boolean)
+                        .map(t => `<p>${escapeHtml(t).replace(/\n/g, '<br>')}</p>`);
+                    return [p.title.trim() ? `<h3>${escapeHtml(p.title.trim())}</h3>` : '', ...paragraphs].filter(Boolean).join('\n');
+                })
+                .join('\n');
+        }
+
+        function characterToState(ch) {
+            const known = ['id', 'name', 'rarity', 'image', 'emoji', 'stats', 'story', 'relationships', 'abilities'];
+            const extra = Object.fromEntries(Object.entries(ch).filter(([k]) => !known.includes(k)));
+            return {
+                id: ch.id,
+                name: (ch.name || '').trim(),
+                rarity: ch.rarity || '',
+                emoji: ch.emoji || '',
+                image: ch.image
+                    ? { kind: 'existing', src: ch.image, dataUrl: '', ext: 'jpg', originalSize: 0, newSize: 0 }
+                    : { kind: 'none', src: '', dataUrl: '', ext: 'jpg', originalSize: 0, newSize: 0 },
+                stats: Object.fromEntries(STATS.map(([k]) => [k, clampStat(ch.stats && ch.stats[k])])),
+                story: storyHtmlToParts(ch.story),
+                abilities: (ch.abilities || []).map(a => ({
+                    name: a.name || '',
+                    type: a.type || 'ativa',
+                    description: a.description || '',
+                    details: Object.entries(a)
+                        .filter(([k]) => !['name', 'type', 'description'].includes(k))
+                        .map(([key, value]) => ({ key, value: String(value) }))
+                })),
+                relationships: (ch.relationships || []).map(r => ({ name: r.name || '', type: r.type || '' })),
+                extra
+            };
+        }
+
+        function stateToCharacter(s) {
+            const ch = {
+                ...s.extra,
+                id: s.id,
+                name: s.name.trim(),
+                rarity: s.rarity,
+                image: s.image.kind === 'none' ? '' : s.image.src,
+                emoji: s.emoji.trim() || '👤',
+                stats: Object.fromEntries(STATS.map(([k]) => [k, clampStat(s.stats[k])])),
+                story: partsToStoryHtml(s.story),
+                relationships: s.relationships
+                    .filter(r => r.name.trim() || r.type.trim())
+                    .map(r => ({ name: r.name.trim() || '?', type: r.type.trim() })),
+                abilities: s.abilities
+                    .filter(a => a.name.trim() || a.description.trim())
+                    .map(a => {
+                        const out = { name: a.name.trim(), type: a.type, description: a.description.trim() };
+                        a.details.forEach(d => { if (d.key && String(d.value).trim()) out[d.key] = String(d.value).trim(); });
+                        return out;
+                    })
+            };
+            return ch;
+        }
+
+        function clampStat(value) {
+            const n = Math.round(Number(value));
+            return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 50;
+        }
+
+        // ========================================
+        // 🔐 GITHUB
+        // ========================================
+        const gh = {
+            token: '',
+            repo: DEFAULT_REPO,
+            branch: DEFAULT_BRANCH,
+            user: '',
+            connected: false
+        };
+
+        function loadConnection() {
+            const saved = (() => { try { return JSON.parse(store.get(KEYS.repo) || '{}'); } catch { return {}; } })();
+            gh.repo = saved.repo || DEFAULT_REPO;
+            gh.branch = saved.branch || DEFAULT_BRANCH;
+            gh.user = saved.user || '';
+            gh.token = store.get(KEYS.token) || store.get(KEYS.token, true) || '';
+            gh.connected = Boolean(gh.token);
+        }
+
+        class GitHubError extends Error {
+            constructor(status, message) { super(message); this.status = status; }
+        }
+
+        async function ghRequest(path, { method = 'GET', body, token = gh.token } = {}) {
+            let response;
+            try {
+                response = await fetch('https://api.github.com' + path, {
+                    method,
+                    headers: {
+                        'Accept': 'application/vnd.github+json',
+                        'Authorization': 'Bearer ' + token,
+                        'X-GitHub-Api-Version': '2022-11-28',
+                        ...(body ? { 'Content-Type': 'application/json' } : {})
+                    },
+                    body: body ? JSON.stringify(body) : undefined,
+                    cache: 'no-store'
+                });
+            } catch {
+                throw new GitHubError(0, 'Sem conexão com o GitHub. Verifique a internet e tente de novo.');
+            }
+            if (response.ok) return response.status === 204 ? null : response.json();
+            let detail = '';
+            try { detail = (await response.json()).message || ''; } catch {}
+            throw new GitHubError(response.status, detail);
+        }
+
+        function friendlyError(error) {
+            const s = error.status;
+            if (s === 0) return error.message;
+            if (s === 401) return 'Chave inválida ou expirada. Crie uma nova chave e conecte de novo.';
+            if (s === 403 && /rate limit/i.test(error.message)) return 'O GitHub limitou as requisições por alguns minutos. Espere um pouco e tente de novo.';
+            if (s === 403) return 'A chave não tem permissão para escrever neste repositório. Confira se escolheu o repositório certo e se "Contents" está como "Read and write".';
+            if (s === 404) return 'Repositório ou branch não encontrado (ou a chave não tem acesso a ele). Confira o nome do repositório.';
+            if (s === 409 || s === 422) return 'O repositório mudou enquanto salvava. Tente salvar de novo.';
+            return `O GitHub respondeu com erro (${s}). ${error.message || ''}`.trim();
+        }
+
+        async function connect(token, repo, branch, remember) {
+            const repoInfo = await ghRequest(`/repos/${repo}`, { token });
+            if (!repoInfo.permissions || !repoInfo.permissions.push) {
+                throw new GitHubError(403, 'sem permissão de escrita');
+            }
+            await ghRequest(`/repos/${repo}/branches/${encodeURIComponent(branch)}`, { token });
+            let user = '';
+            try { user = (await ghRequest('/user', { token })).login || ''; } catch {}
+
+            store.remove(KEYS.token);
+            store.set(KEYS.token, token, !remember);
+            store.set(KEYS.repo, JSON.stringify({ repo, branch, user }));
+            Object.assign(gh, { token, repo, branch, user, connected: true });
+        }
+
+        function disconnect() {
+            store.remove(KEYS.token);
+            gh.token = '';
+            gh.connected = false;
+            renderConnection();
+            loadCharacterList();
+        }
+
+        async function readRepoCharacters(ref) {
+            try {
+                const file = await ghRequest(`/repos/${gh.repo}/contents/${DATA_PATH}?ref=${encodeURIComponent(ref)}`);
+                return JSON.parse(base64ToUtf8(file.content));
+            } catch (error) {
+                if (error.status === 404) return [];
+                if (error instanceof SyntaxError) throw new GitHubError(-1, 'O arquivo characters.json no GitHub está com erro de formato.');
+                throw error;
+            }
+        }
+
+        /**
+         * Salva tudo em UM commit (foto + characters.json), usando a API Git do GitHub.
+         * Se outra alteração chegar no meio, lê de novo e tenta outra vez.
+         */
+        async function commitToGitHub({ apply, message, image, onStep }) {
+            let imageBlobSha = null;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                onStep && onStep('read');
+                const ref = await ghRequest(`/repos/${gh.repo}/git/ref/heads/${encodeURIComponent(gh.branch)}`);
+                const headSha = ref.object.sha;
+                const headCommit = await ghRequest(`/repos/${gh.repo}/git/commits/${headSha}`);
+                const list = await readRepoCharacters(headSha);
+                const { list: newList, result } = apply(list);
+
+                const tree = [];
+                if (image) {
+                    onStep && onStep('image');
+                    if (!imageBlobSha) {
+                        imageBlobSha = (await ghRequest(`/repos/${gh.repo}/git/blobs`, {
+                            method: 'POST',
+                            body: { content: image.base64, encoding: 'base64' }
+                        })).sha;
+                    }
+                    tree.push({ path: image.path, mode: '100644', type: 'blob', sha: imageBlobSha });
+                }
+
+                onStep && onStep('data');
+                tree.push({ path: DATA_PATH, mode: '100644', type: 'blob', content: JSON.stringify(newList, null, 2) + '\n' });
+                const newTree = await ghRequest(`/repos/${gh.repo}/git/trees`, {
+                    method: 'POST',
+                    body: { base_tree: headCommit.tree.sha, tree }
+                });
+                const commit = await ghRequest(`/repos/${gh.repo}/git/commits`, {
+                    method: 'POST',
+                    body: { message, tree: newTree.sha, parents: [headSha] }
+                });
+                try {
+                    await ghRequest(`/repos/${gh.repo}/git/refs/heads/${encodeURIComponent(gh.branch)}`, {
+                        method: 'PATCH',
+                        body: { sha: commit.sha, force: false }
+                    });
+                    return { commitSha: commit.sha, result };
+                } catch (error) {
+                    if (error.status === 422 && attempt < 3) continue; // alguém salvou antes: tenta de novo
+                    throw error;
+                }
+            }
+        }
+
+        // ========================================
+        // 🔌 PAINEL DE CONEXÃO (usado na tela inicial e na revisão)
+        // ========================================
+        function mountConnectPanel(container) {
+            container.innerHTML = '';
+            container.append($('#connectTemplate').content.cloneNode(true));
+            const uid = container.id;
+            $$('[data-id]', container).forEach(el => { el.id = `${uid}-${el.dataset.id}`; });
+            $$('[data-for]', container).forEach(el => { el.htmlFor = `${uid}-${el.dataset.for}`; });
+            $('[data-id="repo"]', container).value = gh.repo;
+            $('[data-id="branch"]', container).value = gh.branch;
+
+            container.addEventListener('click', async e => {
+                const btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                if (btn.dataset.action === 'toggle-token') {
+                    const input = $('[data-id="token"]', container);
+                    const show = input.type === 'password';
+                    input.type = show ? 'text' : 'password';
+                    btn.textContent = show ? 'Ocultar' : 'Mostrar';
+                }
+                if (btn.dataset.action === 'disconnect') disconnect();
+                if (btn.dataset.action === 'connect') {
+                    const msg = $('[data-slot="msg"]', container);
+                    const token = $('[data-id="token"]', container).value.trim();
+                    const repo = $('[data-id="repo"]', container).value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\/+$/, '') || DEFAULT_REPO;
+                    const branch = $('[data-id="branch"]', container).value.trim() || DEFAULT_BRANCH;
+                    const remember = $('[data-id="remember"]', container).checked;
+                    if (!token) {
+                        showNotice(msg, 'error', 'Cole a chave de acesso antes de conectar.');
+                        $('[data-id="token"]', container).focus();
+                        return;
+                    }
+                    if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) {
+                        showNotice(msg, 'error', 'Repositório deve estar no formato usuario/repositorio.');
+                        return;
+                    }
+                    btn.disabled = true;
+                    btn.textContent = 'Conectando…';
+                    showNotice(msg, 'info', 'Verificando a chave no GitHub…');
+                    try {
+                        await connect(token, repo, branch, remember);
+                        renderConnection();
+                        loadCharacterList();
+                    } catch (error) {
+                        showNotice(msg, 'error', friendlyError(error));
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = 'Conectar';
+                    }
+                }
+            });
+        }
+
+        function renderConnection() {
+            const chip = $('#connChip');
+            chip.classList.toggle('is-on', gh.connected);
+            chip.textContent = gh.connected ? (gh.user ? `GitHub: ${gh.user}` : 'GitHub conectado') : 'Não conectado';
+            ['#connectPanelHome', '#connectPanelReview'].forEach(sel => {
+                const panel = $(sel);
+                $('[data-when="off"]', panel).hidden = gh.connected;
+                $('[data-when="on"]', panel).hidden = !gh.connected;
+                $$('[data-slot="repo"]', panel).forEach(el => { el.textContent = gh.repo; });
+                $('[data-slot="user"]', panel).textContent = gh.user ? ` como ${gh.user}` : '';
+                if (gh.connected) {
+                    const token = $('[data-id="token"]', panel);
+                    token.value = '';
+                    $('[data-slot="msg"]', panel).hidden = true;
+                }
+            });
+            $('#connectPanelReview').hidden = gh.connected;
+        }
+
+        function showNotice(el, type, text) {
+            el.className = `notice ${type}`;
+            el.textContent = text;
+            el.hidden = false;
+        }
+
+        // ========================================
+        // 🏠 TELA INICIAL: LISTA DE PERSONAGENS
+        // ========================================
+        let siteCharacters = [];
+
+        async function loadCharacterList() {
+            const list = $('#charList');
+            const source = $('#listSource');
+            const err = $('#listError');
+            err.hidden = true;
+            list.innerHTML = '<li class="busy"><span class="spinner" aria-hidden="true"></span> Carregando personagens…</li>';
+            try {
+                if (gh.connected) {
+                    siteCharacters = await readRepoCharacters(gh.branch);
+                    source.textContent = 'Lido direto do GitHub (versão mais recente).';
+                } else {
+                    const response = await fetch('./characters.json', { cache: 'no-cache' });
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    siteCharacters = await response.json();
+                    source.textContent = 'Conecte ao GitHub para editar ou excluir.';
+                }
+            } catch (error) {
+                list.innerHTML = '';
+                showNotice(err, 'error', error instanceof GitHubError ? friendlyError(error) : 'Não foi possível carregar a lista de personagens.');
+                return;
+            }
+            renderCharacterList();
+        }
+
+        function renderCharacterList() {
+            const list = $('#charList');
+            if (!siteCharacters.length) {
+                list.innerHTML = '<li class="empty-hint">Nenhum personagem ainda. Crie o primeiro!</li>';
+                return;
+            }
+            list.innerHTML = siteCharacters.map(ch => `
+                <li class="char-row rarity-${escapeHtml(ch.rarity)}">
+                    <span class="char-avatar" aria-hidden="true">${ch.image
+                        ? `<img src="${escapeHtml(ch.image)}" alt="" loading="lazy" onerror="this.replaceWith(document.createTextNode('${escapeHtml(ch.emoji || '👤')}'))">`
+                        : escapeHtml(ch.emoji || '👤')}</span>
+                    <span style="min-width: 0;">
+                        <span class="char-name">${escapeHtml((ch.name || '').trim())}</span>
+                        <span class="rarity-badge rarity-${escapeHtml(ch.rarity)}">${escapeHtml(RARITY_LABEL[ch.rarity] || ch.rarity)}</span>
+                    </span>
+                    <span class="char-actions">
+                        <button type="button" class="btn btn-sm" data-edit="${ch.id}" aria-label="Editar ${escapeHtml((ch.name || '').trim())}">✏️<span class="btn-text"> Editar</span></button>
+                        <button type="button" class="btn btn-sm btn-danger" data-delete="${ch.id}" aria-label="Excluir ${escapeHtml((ch.name || '').trim())}" ${gh.connected ? '' : 'disabled title="Conecte ao GitHub para excluir"'}>🗑️<span class="btn-text"> Excluir</span></button>
+                    </span>
+                </li>
+            `).join('');
+        }
+
+        function confirmDialog(title, text, okLabel) {
+            const dialog = $('#confirmDialog');
+            $('#confirmTitle').textContent = title;
+            $('#confirmText').textContent = text;
+            $('#confirmOk').textContent = okLabel;
+            return new Promise(resolve => {
+                const done = value => {
+                    dialog.close();
+                    $('#confirmOk').onclick = null;
+                    $('#confirmCancel').onclick = null;
+                    dialog.oncancel = null;
+                    resolve(value);
+                };
+                $('#confirmOk').onclick = () => done(true);
+                $('#confirmCancel').onclick = () => done(false);
+                dialog.oncancel = e => { e.preventDefault(); done(false); };
+                dialog.showModal();
+                $('#confirmCancel').focus();
+            });
+        }
+
+        // ========================================
+        // 🧭 ASSISTENTE: NAVEGAÇÃO
+        // ========================================
+        function showScreen(name) {
+            ['home', 'wizard', 'result'].forEach(s => { $(`#${s}Screen`).hidden = s !== name; });
+            $('#actionBar').hidden = name !== 'wizard';
+            window.scrollTo(0, 0);
+        }
+
+        function startWizard(newState, step = 1) {
+            state = newState;
+            $('#wizardMode').textContent = state.id ? `Editando: ${state.name || 'personagem'}` : 'Novo personagem';
+            $('#saveError').hidden = true;
+            fillStepOne();
+            showScreen('wizard');
+            goToStep(step, false);
+        }
+
+        function goToStep(step, focus = true) {
+            currentStep = Math.max(1, Math.min(TOTAL_STEPS, step));
+            $$('.step').forEach(sec => { sec.hidden = Number(sec.dataset.step) !== currentStep; });
+            const section = $(`.step[data-step="${currentStep}"]`);
+            $('#stepCounter').textContent = `Etapa ${currentStep} de ${TOTAL_STEPS} · ${section.dataset.name}`;
+            renderStepDots();
+            document.documentElement.style.setProperty('--rarity-color', RARITY_COLOR[state.rarity] || '#4ecdc4');
+
+            if (currentStep === 2) renderImagePanel();
+            if (currentStep === 3) renderStats();
+            if (currentStep === 4) renderStory();
+            if (currentStep === 5) renderAbilities();
+            if (currentStep === 6) renderRelations();
+            if (currentStep === 7) renderReview();
+
+            $('#prevBtn').textContent = currentStep === 1 ? 'Cancelar' : '← Voltar';
+            $('#nextBtn').textContent = currentStep === TOTAL_STEPS ? (state.id ? 'Salvar alterações' : 'Salvar no site') : 'Continuar →';
+            window.scrollTo(0, 0);
+            if (focus) $('.step-title', section).focus({ preventScroll: true });
+            saveDraft();
+        }
+
+        function renderStepDots() {
+            $('#stepDots').innerHTML = $$('.step').map(sec => {
+                const n = Number(sec.dataset.step);
+                const attrs = n === currentStep ? 'aria-current="step"' : '';
+                return `<li><button type="button" data-goto="${n}" class="${n < currentStep ? 'is-done' : ''}" ${attrs} aria-label="Etapa ${n}: ${sec.dataset.name}"></button></li>`;
+            }).join('');
+        }
+
+        function validateIdentity() {
+            let ok = true;
+            const nameInput = $('#f-name');
+            if (!state.name.trim()) {
+                $('#err-name').textContent = 'Dê um nome ao personagem.';
+                nameInput.setAttribute('aria-invalid', 'true');
+                ok = false;
+            } else {
+                $('#err-name').textContent = '';
+                nameInput.removeAttribute('aria-invalid');
+            }
+            if (!state.rarity) {
+                $('#err-rarity').textContent = 'Escolha a raridade.';
+                ok = false;
+            } else {
+                $('#err-rarity').textContent = '';
+            }
+            return ok;
+        }
+
+        function requireIdentity() {
+            if (validateIdentity()) return true;
+            if (currentStep !== 1) goToStep(1);
+            const target = !state.name.trim() ? $('#f-name') : $('#rarityChoices input');
+            target && target.focus();
+            return false;
+        }
+
+        // ========================================
+        // 1️⃣ IDENTIDADE
+        // ========================================
+        function fillStepOne() {
+            $('#f-name').value = state.name;
+            $('#f-emoji').value = state.emoji;
+            $('#rarityChoices').innerHTML = RARITIES.map(([key, label]) => `
+                <label class="choice">
+                    <input type="radio" name="rarity" value="${key}" ${state.rarity === key ? 'checked' : ''}>
+                    <span class="rarity-chip rarity-${key}">${label}</span>
+                </label>
+            `).join('');
+            renderEmojiPicks();
+            $('#err-name').textContent = '';
+            $('#err-rarity').textContent = '';
+            $('#f-name').removeAttribute('aria-invalid');
+        }
+
+        function renderEmojiPicks() {
+            $('#emojiPicks').innerHTML = EMOJIS.map(e =>
+                `<button type="button" class="emoji-pick" data-emoji="${e}" aria-pressed="${state.emoji === e}" aria-label="Usar ${e}">${e}</button>`
+            ).join('');
+        }
+
+        // ========================================
+        // 2️⃣ IMAGEM
+        // ========================================
+        function currentImageSrc() {
+            if (state.image.kind === 'upload') return state.image.dataUrl;
+            if (state.image.kind === 'existing' || state.image.kind === 'url') return state.image.src;
+            return '';
+        }
+
+        function renderImagePanel(busyText) {
+            const panel = $('#imagePanel');
+            const src = currentImageSrc();
+            if (busyText) {
+                panel.innerHTML = `<div class="busy" role="status"><span class="spinner" aria-hidden="true"></span>${escapeHtml(busyText)}</div>`;
+                return;
+            }
+            const preview = src ? `
+                <div class="image-preview">
+                    <div class="thumb"><img src="${escapeHtml(src)}" alt="Prévia da imagem" onerror="this.parentElement.textContent='⚠️'"></div>
+                    <div class="image-info">
+                        <p><strong>${state.image.kind === 'upload' ? 'Foto pronta para enviar' : state.image.kind === 'url' ? 'Imagem por link' : 'Imagem atual'}</strong></p>
+                        ${state.image.kind === 'upload' && state.image.originalSize
+                            ? `<p class="size-note">${formatBytes(state.image.originalSize)} → <strong>${formatBytes(state.image.newSize)}</strong></p>` : ''}
+                        ${state.image.kind !== 'upload' ? `<p class="size-note" style="word-break: break-all;">${escapeHtml(state.image.src)}</p>` : ''}
+                        <div class="actions-row" style="margin-top: 10px;">
+                            <button type="button" class="btn btn-sm" data-action="change-image">Trocar</button>
+                            <button type="button" class="btn btn-sm btn-ghost" data-action="remove-image">Remover</button>
+                        </div>
+                    </div>
+                </div>` : '';
+
+            panel.innerHTML = `
+                ${preview}
+                <div ${src ? 'hidden' : ''} id="imagePicker">
+                    <label class="dropzone" id="dropzone">
+                        <input type="file" id="imageFile" accept="image/*">
+                        <span class="dropzone-icon" aria-hidden="true">📷</span>
+                        <strong>Toque para escolher uma foto</strong>
+                        <small>ou arraste a imagem para cá · JPG, PNG, WEBP ou GIF</small>
+                    </label>
+                    <div class="or-divider">ou use um link</div>
+                    <div class="field-block">
+                        <label class="field-label" for="imageUrl">Link da imagem <span class="opt">(opcional)</span></label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="url" id="imageUrl" placeholder="https://… ou ./images/arquivo.jpg" autocomplete="off">
+                            <button type="button" class="btn" data-action="use-url">Usar</button>
+                        </div>
+                    </div>
+                    <p class="field-hint">Sem imagem, o cartão mostra o emoji escolhido na etapa 1.</p>
+                </div>
+                <div class="notice error" id="imageError" role="alert" hidden></div>
+            `;
+        }
+
+        function loadImageElement(file) {
+            return new Promise((resolve, reject) => {
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+                img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode')); };
+                img.src = url;
+            });
+        }
+
+        function blobToDataUrl(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        async function processImageFile(file) {
+            if (!file.type.startsWith('image/')) {
+                throw new Error('Esse arquivo não é uma imagem. Escolha um JPG, PNG, WEBP ou GIF.');
+            }
+            if (file.size > 30 * 1024 * 1024) {
+                throw new Error('A imagem é muito grande (mais de 30 MB). Escolha outra.');
+            }
+            // GIF pequeno: mantém como está para não perder a animação
+            if (file.type === 'image/gif' && file.size <= 3 * 1024 * 1024) {
+                return { dataUrl: await blobToDataUrl(file), ext: 'gif', originalSize: file.size, newSize: file.size };
+            }
+            let source;
+            try {
+                source = await createImageBitmap(file);
+            } catch {
+                try { source = await loadImageElement(file); }
+                catch { throw new Error('Não foi possível ler essa imagem (formatos como HEIC podem não funcionar). Tente um JPG ou PNG.'); }
+            }
+            const w = source.width, h = source.height;
+            const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(w, h));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(w * scale);
+            canvas.height = Math.round(h * scale);
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#0a0e27'; // fundo para PNG transparente
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+            if (source.close) source.close();
+
+            const toBlob = q => new Promise(res => canvas.toBlob(res, 'image/jpeg', q));
+            let blob = await toBlob(0.85);
+            if (blob && blob.size > 700 * 1024) blob = await toBlob(0.72);
+            if (!blob) throw new Error('Não foi possível processar a imagem neste navegador.');
+            return { dataUrl: await blobToDataUrl(blob), ext: 'jpg', originalSize: file.size, newSize: blob.size };
+        }
+
+        async function handleImageFile(file) {
+            if (!file) return;
+            renderImagePanel('Preparando a foto…');
+            try {
+                const result = await processImageFile(file);
+                state.image = { kind: 'upload', src: '', ...result };
+                renderImagePanel();
+                saveDraft();
+            } catch (error) {
+                renderImagePanel();
+                showNotice($('#imageError'), 'error', error.message);
+            }
+        }
+
+        // ========================================
+        // 3️⃣ ATRIBUTOS
+        // ========================================
+        function renderStats() {
+            $('#statEditor').innerHTML = STATS.map(([key, label]) => `
+                <div class="stat-row">
+                    <label for="stat-${key}">${label}</label>
+                    <input type="range" id="stat-${key}" min="0" max="100" step="1" value="${state.stats[key]}" data-stat="${key}" style="--fill: ${state.stats[key]}%" aria-describedby="statnum-${key}">
+                    <input type="number" id="statnum-${key}" min="0" max="100" step="1" inputmode="numeric" value="${state.stats[key]}" data-stat="${key}" aria-label="${label.replace(/^\S+\s/, '')} (número)">
+                </div>
+            `).join('');
+            drawMiniRadar();
+        }
+
+        function drawMiniRadar() {
+            const canvas = $('#miniRadar');
+            const size = Math.round(canvas.getBoundingClientRect().width) || 300;
+            const dpr = Math.min(window.devicePixelRatio || 1, 3);
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            const ctx = canvas.getContext('2d');
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, size, size);
+            const c = size / 2;
+            const radius = size / 2 - 44;
+            const n = STATS.length;
+            const color = RARITY_COLOR[state.rarity] || '#4ecdc4';
+            const pt = (i, r) => {
+                const a = (Math.PI * 2 * i) / n - Math.PI / 2;
+                return [c + Math.cos(a) * r, c + Math.sin(a) * r];
+            };
+            ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+            for (let ring = 1; ring <= 4; ring++) {
+                ctx.beginPath();
+                for (let i = 0; i <= n; i++) {
+                    const [x, y] = pt(i % n, radius * ring / 4);
+                    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+                }
+                ctx.stroke();
+            }
+            ctx.fillStyle = '#b9bdd0';
+            ctx.font = "600 11px 'Segoe UI', system-ui, sans-serif";
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            STATS.forEach(([, , short], i) => {
+                const [x, y] = pt(i, radius + 24);
+                ctx.fillText(short, x, y);
+            });
+            ctx.beginPath();
+            STATS.forEach(([key], i) => {
+                const [x, y] = pt(i, radius * state.stats[key] / 100);
+                i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+            });
+            ctx.closePath();
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.globalAlpha = 1;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+        }
+
+        // ========================================
+        // 4️⃣ HISTÓRIA
+        // ========================================
+        function renderStory() {
+            const list = $('#storyList');
+            list.innerHTML = state.story.map((part, i) => `
+                <div class="item">
+                    <div class="item-head">
+                        <h3>Parte ${i + 1}</h3>
+                        <div class="item-tools">
+                            <button type="button" class="icon-btn" data-action="move-story" data-index="${i}" data-dir="-1" aria-label="Mover parte ${i + 1} para cima" ${i === 0 ? 'disabled' : ''}>↑</button>
+                            <button type="button" class="icon-btn" data-action="move-story" data-index="${i}" data-dir="1" aria-label="Mover parte ${i + 1} para baixo" ${i === state.story.length - 1 ? 'disabled' : ''}>↓</button>
+                            <button type="button" class="icon-btn danger" data-action="remove-story" data-index="${i}" aria-label="Remover parte ${i + 1}">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="field-block">
+                        <label class="field-label" for="story-title-${i}">Título</label>
+                        <input type="text" id="story-title-${i}" data-story="${i}" data-field="title" value="${escapeHtml(part.title)}" maxlength="80" placeholder="Ex.: Origem">
+                    </div>
+                    <div class="field-block">
+                        <label class="field-label" for="story-text-${i}">Texto</label>
+                        <textarea id="story-text-${i}" data-story="${i}" data-field="text" rows="6" placeholder="Conte essa parte da história…">${escapeHtml(part.text)}</textarea>
+                    </div>
+                </div>
+            `).join('') || '<p class="empty-hint">Nenhuma parte ainda.</p>';
+        }
+
+        // ========================================
+        // 5️⃣ HABILIDADES
+        // ========================================
+        function detailOptions(selected) {
+            const options = DETAIL_KEYS.map(([k, l]) => `<option value="${k}" ${k === selected ? 'selected' : ''}>${l}</option>`);
+            if (selected && !DETAIL_LABEL[selected]) options.push(`<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>`);
+            return options.join('');
+        }
+
+        function renderAbilities() {
+            const list = $('#abilityList');
+            if (!state.abilities.length) {
+                list.innerHTML = '<p class="empty-hint">Nenhuma habilidade ainda.</p>';
+                return;
+            }
+            list.innerHTML = state.abilities.map((ab, i) => `
+                <div class="item">
+                    <div class="item-head">
+                        <h3>Habilidade ${i + 1}</h3>
+                        <div class="item-tools">
+                            <button type="button" class="icon-btn" data-action="move-ability" data-index="${i}" data-dir="-1" aria-label="Mover habilidade ${i + 1} para cima" ${i === 0 ? 'disabled' : ''}>↑</button>
+                            <button type="button" class="icon-btn" data-action="move-ability" data-index="${i}" data-dir="1" aria-label="Mover habilidade ${i + 1} para baixo" ${i === state.abilities.length - 1 ? 'disabled' : ''}>↓</button>
+                            <button type="button" class="icon-btn danger" data-action="remove-ability" data-index="${i}" aria-label="Remover habilidade ${i + 1}">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="field-block">
+                        <label class="field-label" for="ab-name-${i}">Nome</label>
+                        <input type="text" id="ab-name-${i}" data-ability="${i}" data-field="name" value="${escapeHtml(ab.name)}" maxlength="80" placeholder="Ex.: Meteoro Punho">
+                    </div>
+                    <fieldset class="field-block" style="border: none;">
+                        <legend class="field-label">Tipo</legend>
+                        <div class="segmented">
+                            ${ABILITY_TYPES.map(([k, l]) => `
+                                <label class="choice">
+                                    <input type="radio" name="ab-type-${i}" value="${k}" data-ability="${i}" data-field="type" ${ab.type === k ? 'checked' : ''}>
+                                    <span>${l}</span>
+                                </label>`).join('')}
+                        </div>
+                    </fieldset>
+                    <div class="field-block">
+                        <label class="field-label" for="ab-desc-${i}">Descrição</label>
+                        <textarea id="ab-desc-${i}" data-ability="${i}" data-field="description" rows="3" placeholder="O que essa habilidade faz?">${escapeHtml(ab.description)}</textarea>
+                    </div>
+                    <div class="field-block">
+                        <span class="field-label">Detalhes <span class="opt">(recarga, dano, alcance…)</span></span>
+                        ${ab.details.map((d, j) => `
+                            <div class="detail-row">
+                                <select data-ability="${i}" data-detail="${j}" data-field="key" aria-label="Tipo do detalhe ${j + 1}">${detailOptions(d.key)}</select>
+                                <input type="text" data-ability="${i}" data-detail="${j}" data-field="value" value="${escapeHtml(d.value)}" placeholder="${escapeHtml((DETAIL_KEYS.find(x => x[0] === d.key) || [, , 'Valor'])[2])}" aria-label="Valor do detalhe ${j + 1}">
+                                <button type="button" class="icon-btn danger" data-action="remove-detail" data-index="${i}" data-detail-index="${j}" aria-label="Remover detalhe ${j + 1}">×</button>
+                            </div>`).join('')}
+                        <button type="button" class="link-add" data-action="add-detail" data-index="${i}">＋ Adicionar detalhe</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ========================================
+        // 6️⃣ RELAÇÕES
+        // ========================================
+        function renderRelations() {
+            const list = $('#relList');
+            if (!state.relationships.length) {
+                list.innerHTML = '<p class="empty-hint" style="margin-bottom: 0;">Nenhuma relação ainda.</p>';
+                return;
+            }
+            list.innerHTML = state.relationships.map((rel, i) => `
+                <div class="rel-row">
+                    <div class="field-block" style="margin-bottom: 0;">
+                        <label class="field-label" for="rel-name-${i}">Nome</label>
+                        <input type="text" id="rel-name-${i}" data-rel="${i}" data-field="name" value="${escapeHtml(rel.name)}" maxlength="80" placeholder="Ex.: Nebula">
+                    </div>
+                    <div class="field-block" style="margin-bottom: 0;">
+                        <label class="field-label" for="rel-type-${i}">Relação</label>
+                        <input type="text" id="rel-type-${i}" data-rel="${i}" data-field="type" value="${escapeHtml(rel.type)}" maxlength="60" list="relTypes" placeholder="Ex.: Rival">
+                    </div>
+                    <button type="button" class="icon-btn danger" data-action="remove-rel" data-index="${i}" aria-label="Remover relação ${i + 1}">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        // ========================================
+        // 7️⃣ REVISÃO
+        // ========================================
+        function renderReview() {
+            const ch = stateToCharacter(state);
+            const src = currentImageSrc();
+            const preview = (() => {
+                const text = new DOMParser().parseFromString(ch.story.replace(/<[^>]*>/g, ' '), 'text/html')
+                    .body.textContent.replace(/\s+/g, ' ').trim();
+                return text ? escapeHtml(text.substring(0, 120)) + (text.length > 120 ? '...' : '') : '<em>Sem história ainda.</em>';
+            })();
+            $('#reviewCard').innerHTML = `
+                <article class="character-card rarity-${escapeHtml(ch.rarity || 'comum')}">
+                    <div class="character-image" ${src ? `style="--img: url('${escapeHtml(src)}')"` : ''}>
+                        ${src ? `<img src="${escapeHtml(src)}" alt="">` : `<span class="image-fallback"><span aria-hidden="true">${escapeHtml(ch.emoji)}</span></span>`}
+                    </div>
+                    <div class="character-info">
+                        <div class="card-header">
+                            <h3 class="character-name">${escapeHtml(ch.name || 'Sem nome')}</h3>
+                            <span class="rarity-badge rarity-${escapeHtml(ch.rarity)}">${escapeHtml(RARITY_LABEL[ch.rarity] || '—')}</span>
+                        </div>
+                        <div class="stats-preview">
+                            ${STATS.slice(0, 4).map(([k, label]) => `
+                                <div class="stat-item">
+                                    <span class="stat-label">${label}</span>
+                                    <span class="stat-value">${ch.stats[k]}</span>
+                                    <span class="mini-bar" aria-hidden="true"><span style="--v: ${ch.stats[k]}%"></span></span>
+                                </div>`).join('')}
+                        </div>
+                        <p class="story-preview">${preview}</p>
+                    </div>
+                </article>
+            `;
+
+            const storyParts = state.story.filter(p => p.text.trim()).length;
+            const items = [
+                ['Nome e raridade', ch.name && ch.rarity, ch.name && ch.rarity ? 'OK' : 'Faltando', 1],
+                ['Imagem', state.image.kind !== 'none', state.image.kind === 'upload' ? 'Nova foto' : state.image.kind === 'none' ? 'Usará o emoji' : 'OK', 2],
+                ['História', storyParts > 0, storyParts ? `${storyParts} parte(s)` : 'Vazia', 4],
+                ['Habilidades', ch.abilities.length > 0, `${ch.abilities.length}`, 5],
+                ['Relações', ch.relationships.length > 0, `${ch.relationships.length}`, 6]
+            ];
+            $('#reviewChecklist').innerHTML = items.map(([label, ok, value, step]) => `
+                <li>
+                    <span>${label}</span>
+                    <span class="${ok ? 'ok' : 'warn'}">${value}</span>
+                    <button type="button" class="btn btn-sm btn-ghost" data-goto="${step}" aria-label="Editar ${label}">Editar</button>
+                </li>
+            `).join('');
+            renderConnection();
+        }
+
+        // ========================================
+        // 💾 SALVAR
+        // ========================================
+        const SAVE_STEPS = [
+            ['read', 'Lendo o repositório'],
+            ['image', 'Enviando a foto'],
+            ['data', 'Salvando a ficha'],
+            ['publish', 'Publicando no site']
+        ];
+
+        function renderSaveSteps(active, done, skip = []) {
+            $('#saveSteps').innerHTML = SAVE_STEPS
+                .filter(([k]) => !skip.includes(k))
+                .map(([k, l]) => `<li class="${done.includes(k) ? 'is-done' : k === active ? 'is-active' : ''}"><span class="dot" aria-hidden="true"></span>${l}</li>`)
+                .join('');
+        }
+
+        function setResult(icon, title, lead) {
+            $('#resultIcon').textContent = icon;
+            $('#resultTitle').textContent = title;
+            $('#resultLead').textContent = lead;
+        }
+
+        async function saveCharacter() {
+            if (!requireIdentity()) return;
+            if (!gh.connected) {
+                showNotice($('#saveError'), 'error', 'Conecte ao GitHub (logo acima) para salvar.');
+                const tokenInput = $('#connectPanelReview [data-id="token"]');
+                tokenInput && tokenInput.focus();
+                return;
+            }
+
+            const character = stateToCharacter(state);
+            let image = null;
+            if (state.image.kind === 'upload' && state.image.dataUrl) {
+                const fileName = `${slugify(character.name)}-${Date.now().toString(36)}.${state.image.ext}`;
+                image = { path: `${IMAGE_DIR}/${fileName}`, base64: state.image.dataUrl.split(',')[1] };
+                character.image = `./${IMAGE_DIR}/${fileName}`;
+            }
+            const isEdit = state.id != null;
+            const skip = image ? [] : ['image'];
+            const done = [];
+
+            showScreen('result');
+            setResult('⏳', isEdit ? 'Salvando alterações…' : 'Salvando personagem…', 'Não feche esta página.');
+            $('#resultError').hidden = true;
+            $('#resultActions').hidden = true;
+            $('#commitLink').textContent = '';
+            renderSaveSteps('read', done, skip);
+            $('#resultTitle').focus();
+
+            let commit;
+            try {
+                commit = await commitToGitHub({
+                    image,
+                    message: `${isEdit ? 'Atualiza' : 'Adiciona'} personagem: ${character.name} (via editor)`,
+                    apply(list) {
+                        const copy = list.slice();
+                        let saved;
+                        const index = isEdit ? copy.findIndex(c => c.id === character.id) : -1;
+                        if (index >= 0) {
+                            saved = { ...copy[index], ...character };
+                            copy[index] = saved;
+                        } else {
+                            const nextId = copy.reduce((max, c) => Math.max(max, Number(c.id) || 0), 0) + 1;
+                            saved = { ...character, id: nextId };
+                            copy.push(saved);
+                        }
+                        return { list: copy, result: saved };
+                    },
+                    onStep(step) {
+                        const order = SAVE_STEPS.map(s => s[0]);
+                        order.slice(0, order.indexOf(step)).forEach(k => { if (!done.includes(k)) done.push(k); });
+                        renderSaveSteps(step, done, skip);
+                    }
+                });
+            } catch (error) {
+                setResult('⚠️', 'Não foi possível salvar', 'Seu rascunho continua guardado neste aparelho.');
+                showNotice($('#resultError'), 'error', error instanceof GitHubError ? friendlyError(error) : 'Erro inesperado: ' + error.message);
+                $('#saveSteps').innerHTML = '';
+                $('#resultActions').hidden = false;
+                $('#viewSiteBtn').hidden = true;
+                $('#anotherBtn').textContent = 'Voltar ao editor';
+                $('#anotherBtn').dataset.mode = 'retry';
+                return;
+            }
+
+            clearDraft();
+            ['read', 'image', 'data'].forEach(k => { if (!done.includes(k)) done.push(k); });
+            renderSaveSteps('publish', done, skip);
+            setResult('✅', isEdit ? 'Alterações salvas!' : 'Personagem salvo!', 'Já está no GitHub. O site atualiza em cerca de 1 minuto.');
+            $('#commitLink').innerHTML = `Alteração registrada: <a class="footer-link" href="https://github.com/${escapeHtml(gh.repo)}/commit/${commit.commitSha}" target="_blank" rel="noopener">ver no GitHub</a>`;
+            $('#resultActions').hidden = false;
+            $('#viewSiteBtn').hidden = false;
+            $('#anotherBtn').textContent = 'Criar outro';
+            $('#anotherBtn').dataset.mode = 'new';
+            state = blankCharacter();
+            waitForPublish(commit.result, done, skip);
+        }
+
+        async function deleteCharacter(id) {
+            const ch = siteCharacters.find(c => c.id === id);
+            if (!ch) return;
+            const ok = await confirmDialog(
+                `Excluir “${(ch.name || '').trim()}”?`,
+                'O personagem sai do site. A imagem continua na pasta images/ e dá para recuperar tudo pelo histórico do GitHub.',
+                'Excluir'
+            );
+            if (!ok) return;
+
+            const skip = ['image'];
+            const done = [];
+            showScreen('result');
+            setResult('⏳', 'Excluindo…', 'Não feche esta página.');
+            $('#resultError').hidden = true;
+            $('#resultActions').hidden = true;
+            $('#commitLink').textContent = '';
+            renderSaveSteps('read', done, skip);
+            try {
+                const commit = await commitToGitHub({
+                    message: `Remove personagem: ${(ch.name || '').trim()} (via editor)`,
+                    apply(list) {
+                        return { list: list.filter(c => c.id !== id), result: { id, deleted: true } };
+                    },
+                    onStep(step) {
+                        if (step === 'data' && !done.includes('read')) done.push('read');
+                        renderSaveSteps(step, done, skip);
+                    }
+                });
+                done.push('read', 'data');
+                setResult('🗑️', 'Personagem excluído', 'O site atualiza em cerca de 1 minuto.');
+                $('#commitLink').innerHTML = `Alteração registrada: <a class="footer-link" href="https://github.com/${escapeHtml(gh.repo)}/commit/${commit.commitSha}" target="_blank" rel="noopener">ver no GitHub</a>`;
+                $('#resultActions').hidden = false;
+                $('#viewSiteBtn').hidden = false;
+                $('#anotherBtn').textContent = 'Criar personagem';
+                $('#anotherBtn').dataset.mode = 'new';
+                waitForPublish(commit.result, done, skip);
+            } catch (error) {
+                setResult('⚠️', 'Não foi possível excluir', '');
+                $('#saveSteps').innerHTML = '';
+                showNotice($('#resultError'), 'error', error instanceof GitHubError ? friendlyError(error) : 'Erro inesperado: ' + error.message);
+                $('#resultActions').hidden = false;
+                $('#viewSiteBtn').hidden = true;
+                $('#anotherBtn').textContent = 'Criar personagem';
+                $('#anotherBtn').dataset.mode = 'new';
+            }
+        }
+
+        // Confere o characters.json do próprio site até a mudança aparecer
+        let publishTimer = null;
+        function waitForPublish(result, done, skip) {
+            clearTimeout(publishTimer);
+            const started = Date.now();
+            const check = async () => {
+                try {
+                    const response = await fetch(`./characters.json?t=${Date.now()}`, { cache: 'no-store' });
+                    const list = response.ok ? await response.json() : [];
+                    const live = result.deleted
+                        ? !list.some(c => c.id === result.id)
+                        : list.some(c => c.id === result.id && JSON.stringify(c) === JSON.stringify(result));
+                    if (live) {
+                        done.push('publish');
+                        renderSaveSteps(null, done, skip);
+                        $('#resultLead').textContent = 'Já está no ar! 🎉';
+                        return;
+                    }
+                } catch {}
+                if (Date.now() - started > 4 * 60 * 1000) {
+                    renderSaveSteps(null, done, skip);
+                    $('#resultLead').textContent = 'Salvo no GitHub. O site pode levar mais alguns minutos para mostrar a mudança.';
+                    return;
+                }
+                publishTimer = setTimeout(check, 6000);
+            };
+            publishTimer = setTimeout(check, 4000);
+        }
+
+        // ========================================
+        // 🎛️ EVENTOS
+        // ========================================
+        const form = $('#wizardForm');
+
+        form.addEventListener('submit', e => e.preventDefault());
+
+        form.addEventListener('input', e => {
+            const t = e.target;
+            if (t.dataset.bind) {
+                state[t.dataset.bind] = t.value;
+                if (t.dataset.bind === 'name' && t.value.trim()) { $('#err-name').textContent = ''; t.removeAttribute('aria-invalid'); }
+                if (t.dataset.bind === 'emoji') $$('.emoji-pick').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.emoji === t.value)));
+            } else if (t.name === 'rarity') {
+                state.rarity = t.value;
+                $('#err-rarity').textContent = '';
+                document.documentElement.style.setProperty('--rarity-color', RARITY_COLOR[state.rarity]);
+            } else if (t.dataset.stat) {
+                const value = clampStat(t.value === '' ? 0 : t.value);
+                state.stats[t.dataset.stat] = value;
+                const range = $(`#stat-${t.dataset.stat}`);
+                const num = $(`#statnum-${t.dataset.stat}`);
+                if (t !== range) range.value = value;
+                if (t !== num) num.value = value;
+                range.style.setProperty('--fill', value + '%');
+                drawMiniRadar();
+            } else if (t.dataset.story !== undefined) {
+                state.story[Number(t.dataset.story)][t.dataset.field] = t.value;
+            } else if (t.dataset.ability !== undefined) {
+                const ab = state.abilities[Number(t.dataset.ability)];
+                if (t.dataset.detail !== undefined) {
+                    ab.details[Number(t.dataset.detail)][t.dataset.field] = t.value;
+                } else {
+                    ab[t.dataset.field] = t.value;
+                }
+            } else if (t.dataset.rel !== undefined) {
+                state.relationships[Number(t.dataset.rel)][t.dataset.field] = t.value;
+            }
+            saveDraft();
+        });
+
+        form.addEventListener('change', e => {
+            const t = e.target;
+            if (t.id === 'imageFile') handleImageFile(t.files[0]);
+            if (t.dataset.stat && t.type === 'number') t.value = state.stats[t.dataset.stat];
+            if (t.dataset.detail !== undefined && t.dataset.field === 'key') renderAbilities();
+        });
+
+        // Arrastar e soltar imagem
+        form.addEventListener('dragover', e => {
+            const zone = e.target.closest('#dropzone');
+            if (!zone) return;
+            e.preventDefault();
+            zone.classList.add('is-over');
+        });
+        form.addEventListener('dragleave', e => {
+            const zone = e.target.closest('#dropzone');
+            if (zone) zone.classList.remove('is-over');
+        });
+        form.addEventListener('drop', e => {
+            const zone = e.target.closest('#dropzone');
+            if (!zone) return;
+            e.preventDefault();
+            zone.classList.remove('is-over');
+            handleImageFile(e.dataTransfer.files[0]);
+        });
+
+        document.addEventListener('click', e => {
+            const goto = e.target.closest('[data-goto]');
+            if (goto) {
+                const target = Number(goto.dataset.goto);
+                if (target > 1 && !validateIdentity()) { requireIdentity(); return; }
+                goToStep(target);
+                return;
+            }
+
+            const emoji = e.target.closest('[data-emoji]');
+            if (emoji) {
+                state.emoji = emoji.dataset.emoji;
+                $('#f-emoji').value = state.emoji;
+                renderEmojiPicks();
+                saveDraft();
+                return;
+            }
+
+            const btn = e.target.closest('#wizardForm [data-action]');
+            if (!btn) return;
+            const i = Number(btn.dataset.index);
+            const focusLast = sel => {
+                const all = $$(sel);
+                if (!all.length) return;
+                const el = all[all.length - 1];
+                el.focus({ preventScroll: true });
+                el.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+            };
+            switch (btn.dataset.action) {
+                case 'add-story':
+                    state.story.push({ title: '', text: '' });
+                    renderStory();
+                    focusLast('[data-story][data-field="title"]');
+                    break;
+                case 'remove-story':
+                    state.story.splice(i, 1);
+                    renderStory();
+                    break;
+                case 'move-story': {
+                    const j = i + Number(btn.dataset.dir);
+                    [state.story[i], state.story[j]] = [state.story[j], state.story[i]];
+                    renderStory();
+                    break;
+                }
+                case 'add-ability':
+                    state.abilities.push({ name: '', type: 'ativa', description: '', details: [{ key: 'cooldown', value: '' }, { key: 'damage', value: '' }] });
+                    renderAbilities();
+                    focusLast('[data-ability][data-field="name"]');
+                    break;
+                case 'remove-ability':
+                    state.abilities.splice(i, 1);
+                    renderAbilities();
+                    break;
+                case 'move-ability': {
+                    const j = i + Number(btn.dataset.dir);
+                    [state.abilities[i], state.abilities[j]] = [state.abilities[j], state.abilities[i]];
+                    renderAbilities();
+                    break;
+                }
+                case 'add-detail': {
+                    const used = state.abilities[i].details.map(d => d.key);
+                    const next = (DETAIL_KEYS.find(([k]) => !used.includes(k)) || DETAIL_KEYS[0])[0];
+                    state.abilities[i].details.push({ key: next, value: '' });
+                    renderAbilities();
+                    focusLast(`[data-ability="${i}"][data-detail][data-field="value"]`);
+                    break;
+                }
+                case 'remove-detail':
+                    state.abilities[i].details.splice(Number(btn.dataset.detailIndex), 1);
+                    renderAbilities();
+                    break;
+                case 'add-rel':
+                    state.relationships.push({ name: '', type: '' });
+                    renderRelations();
+                    focusLast('[data-rel][data-field="name"]');
+                    break;
+                case 'remove-rel':
+                    state.relationships.splice(i, 1);
+                    renderRelations();
+                    break;
+                case 'change-image':
+                    $('#imagePicker').hidden = false;
+                    $('#imageFile').click();
+                    break;
+                case 'remove-image':
+                    state.image = { kind: 'none', src: '', dataUrl: '', ext: 'jpg', originalSize: 0, newSize: 0 };
+                    renderImagePanel();
+                    break;
+                case 'use-url': {
+                    const url = $('#imageUrl').value.trim();
+                    if (!/^(https?:\/\/|\.\/|images\/)/i.test(url)) {
+                        showNotice($('#imageError'), 'error', 'Cole um link que comece com https:// ou ./images/');
+                        return;
+                    }
+                    state.image = { kind: 'url', src: url, dataUrl: '', ext: 'jpg', originalSize: 0, newSize: 0 };
+                    renderImagePanel();
+                    break;
+                }
+                default:
+                    return;
+            }
+            saveDraft();
+        });
+
+        $('#prevBtn').addEventListener('click', () => {
+            if (currentStep === 1) {
+                showScreen('home');
+                loadCharacterList();
+                checkDraftBanner();
+                return;
+            }
+            goToStep(currentStep - 1);
+        });
+
+        $('#nextBtn').addEventListener('click', () => {
+            if (currentStep === 1 && !requireIdentity()) return;
+            if (currentStep === TOTAL_STEPS) { saveCharacter(); return; }
+            goToStep(currentStep + 1);
+        });
+
+        $('#newCharacter').addEventListener('click', async () => {
+            const draft = readDraft();
+            if (draft && (draft.state.name || draft.state.id)) {
+                const replace = await confirmDialog('Começar do zero?', 'Você tem um rascunho guardado. Começar um novo personagem apaga esse rascunho.', 'Começar novo');
+                if (!replace) return;
+            }
+            clearDraft();
+            startWizard(blankCharacter());
+        });
+
+        $('#resumeDraft').addEventListener('click', () => {
+            const draft = readDraft();
+            if (draft) startWizard(Object.assign(blankCharacter(), draft.state), draft.step || 1);
+        });
+
+        $('#discardDraft').addEventListener('click', async () => {
+            const ok = await confirmDialog('Descartar rascunho?', 'O que você preencheu e ainda não salvou será apagado deste aparelho.', 'Descartar');
+            if (!ok) return;
+            clearDraft();
+            checkDraftBanner();
+        });
+
+        $('#charList').addEventListener('click', async e => {
+            const edit = e.target.closest('[data-edit]');
+            const del = e.target.closest('[data-delete]');
+            if (edit) {
+                const ch = siteCharacters.find(c => String(c.id) === edit.dataset.edit);
+                if (!ch) return;
+                const draft = readDraft();
+                if (draft && (draft.state.name || draft.state.id) && draft.state.id !== ch.id) {
+                    const replace = await confirmDialog('Trocar de personagem?', 'Você tem um rascunho guardado. Editar outro personagem apaga esse rascunho.', 'Continuar');
+                    if (!replace) return;
+                }
+                startWizard(characterToState(ch));
+            }
+            if (del && !del.disabled) deleteCharacter(Number(del.dataset.delete));
+        });
+
+        $('#anotherBtn').addEventListener('click', () => {
+            if ($('#anotherBtn').dataset.mode === 'retry') {
+                const draft = readDraft();
+                startWizard(draft ? Object.assign(blankCharacter(), draft.state) : state, TOTAL_STEPS);
+                return;
+            }
+            clearTimeout(publishTimer);
+            startWizard(blankCharacter());
+        });
+
+        $('#backHomeBtn').addEventListener('click', () => {
+            clearTimeout(publishTimer);
+            showScreen('home');
+            checkDraftBanner();
+            loadCharacterList();
+        });
+
+        window.addEventListener('resize', () => { if (currentStep === 3 && !$('#wizardScreen').hidden) drawMiniRadar(); });
+
+        function checkDraftBanner() {
+            const draft = readDraft();
+            const has = Boolean(draft && (draft.state.name || draft.state.id));
+            $('#draftBanner').hidden = !has;
+            if (has) $('#draftName').textContent = draft.state.name || 'sem nome';
+        }
+
+        // ========================================
+        // 🚀 INICIAR
+        // ========================================
+        loadConnection();
+        mountConnectPanel($('#connectPanelHome'));
+        mountConnectPanel($('#connectPanelReview'));
+        renderConnection();
+        checkDraftBanner();
+        loadCharacterList();
+        showScreen('home');
+    </script>
+</body>
+</html>
