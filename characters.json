@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "name": "Astraeus O Berserker das Supernovas ",
+    "name": "Astraeus O Berserker das Supernovas",
     "rarity": "calamidades",
     "image": "./images/Beserker.jpg",
     "emoji": "🗡️",
@@ -13,7 +13,7 @@
       "magic": 90,
       "stamina": 99
     },
-    "story": "<h3>Origem</h3>\n<p>Astraeus pode ser um contratempo no mesmo universo da Nebulia. Talvez ele seja um humano que foi exposto ao núcleo de uma estrela moribunda ou sobreviveu à passagem por um buraco de minhoca instável, que queimou seu sistema nervoso e reescreveu seu DNA. Agora, seu corpo não funciona mais com energia biológica normal, mas com uma versão caótica e supercarregada da energia cósmica que a Nebulia consome com elegância.</p>\n<h3>Jornada</h3>\n<p> ele se alimenta do caos. Ele vagueia de planeta em planeta ou de dimensão em dimensão, buscando os oponentes mais fortes que pode encontrar, não por glória, ms pela simples necessidade de sentir a euforia da luta e evitar que sua energia interna o consuma em paz.</p>\n<h3>Presente</h3>\n<p>Astraeus é a personificação do caos e da violência celestial. Fora de combate, ele pode parecer apático, entediado e até um pouco lento, como se estivesse sempre sonhando acordado. No entanto, o menor sinal de conflito acende uma chave em seu cérebro.</p>",
+    "story": "<h3>Origem</h3>\n<p>Astraeus pode ser um contratempo no mesmo universo da Nebulia. Talvez ele seja um humano que foi exposto ao núcleo de uma estrela moribunda ou sobreviveu à passagem por um buraco de minhoca instável, que queimou seu sistema nervoso e reescreveu seu DNA. Agora, seu corpo não funciona mais com energia biológica normal, mas com uma versão caótica e supercarregada da energia cósmica que a Nebulia consome com elegância.</p>\n<h3>Jornada</h3>\n<p>ele se alimenta do caos. Ele vagueia de planeta em planeta ou de dimensão em dimensão, buscando os oponentes mais fortes que pode encontrar, não por glória, ms pela simples necessidade de sentir a euforia da luta e evitar que sua energia interna o consuma em paz.</p>\n<h3>Presente</h3>\n<p>Astraeus é a personificação do caos e da violência celestial. Fora de combate, ele pode parecer apático, entediado e até um pouco lento, como se estivesse sempre sonhando acordado. No entanto, o menor sinal de conflito acende uma chave em seu cérebro.</p>",
     "relationships": [
       {
         "name": "?",
@@ -54,7 +54,12 @@
         "damage": "500 + 200% de Poder",
         "area": "4km de raio"
       }
-    ]
+    ],
+    "theme": {
+      "youtube": "https://www.youtube.com/watch?v=9KmYFY5oOvM",
+      "title": "TEMA",
+      "artist": "ASTREUS"
+    }
   },
   {
     "id": 2,
