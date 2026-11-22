@@ -133,5 +133,88 @@
         "area": "50m de raio"
       }
     ]
+  },
+  {
+    "id": 3,
+    "name": "PRALAYA Ato 1 ☠️",
+    "rarity": "calamidades",
+    "image": "./images/pralaya-ato-1-mwsh434q.jpg",
+    "emoji": "👤",
+    "stats": {
+      "power": 90,
+      "defense": 85,
+      "speed": 60,
+      "intelligence": 87,
+      "magic": 83,
+      "stamina": 88
+    },
+    "story": "<h3>Origem</h3>\n<p>Pralaya é indiferente, imutável e inevitável. Ele não é malicioso ou sádico; ele é uma função do universo. Assim como uma tempestade ou um terremoto, ele não age por ódio, mas por pura causalidade cósmica. Ele raramente fala, e quando o faz, sua voz é um eco profundo e grave que parece vir das profundezas do espaço, fazendo o ar vibrar.</p>\n<p>Ele vê a destruição não como um fim, mas como uma parte necessária do ciclo de existência. Para que algo novo nasça, algo antigo deve ser dissolvido. Ele é o agente dessa dissolução. Ele respeita o poder (por isso tolera Magnus e Nebulia), mas não tem apego a nada. Sua presença alone gera um medo primordial e instintivo em todos os seres vivos.</p>",
+    "relationships": [
+      {
+        "name": "Nebulia",
+        "type": "Braço esquerdo"
+      },
+      {
+        "name": "Magnus",
+        "type": "Braço direito"
+      }
+    ],
+    "abilities": [
+      {
+        "name": "· Absorção e Reflexão Cósmica (宇宙吸反, Uchū Kyūhan)",
+        "type": "ativa",
+        "description": "Sua habilidade definitiva. Qualquer forma de energia (cinética, térmica, cósmica, vital) que entre em contato com seu corpo é absorvida instantaneamente sem causar dano. Esta energia é canalizada para uma dimensão interior dentro dele, um \"vácuo\". Ele pode então liberar essa energia acumulada concentrada e ampliada em dobro através de seus punhos, seus olhos ou simplesmente como uma onda de força pura de seu corpo.",
+        "damage": "2x"
+      },
+      {
+        "name": "Golpe Devorador",
+        "type": "ativa",
+        "description": "· Golpe Devorador > Golpe do Colapso: Ele absorve um soco e devolve o dobro da força",
+        "damage": "2x"
+      },
+      {
+        "name": "Respiração da Calamidade",
+        "type": "passiva",
+        "description": "· Respiração da Calamidade: Ele absorve um raio laser e exala uma explosão de energia vermelha destrutiva.",
+        "bonus": "10 de força",
+        "damage": "100"
+      },
+      {
+        "name": "Aura da Calmidade",
+        "type": "passiva",
+        "description": "Aura da Calamidade (災厄のオーラ, Wazaku no Ōra): Uma aura vermelha sanguínea, espessa e pesada que emana de seu corpo. Ela não queima; ela suprime. Dentro do raio desta aura:\n  · A gravidade aumenta drasticamente.\n  · A energia de outros seres é drenada lentamente (um efeito passivo e menos eficiente que o de Nebulia).\n  · Tecnologia falha e poderes baseados em energia tornam-se instáveis.\n  · Seres mais fracos podem ser esmagados ou desmaiar apenas por estarem perto.\n· Invulnerabilidade Primitiva: Seu corpo é tão denso e resiliente que é praticamente indestrutível por meios convencionais. Ele pode andar no vácuo do espaço, no núcleo de uma estrela ou em um planeta em desintegração sem se machucar.",
+        "area": "10km",
+        "damage": "2x"
+      },
+      {
+        "name": "Força de reputara",
+        "type": "ativa",
+        "description": "· Força de Ruptura Universal (宇宙破壊力, Uchū Hakairyoku): Sua força física bruta, sem absorver nada, é suficiente para rachar luas e alterar a órbita de planetas menores com um único golpe.",
+        "damage": "2x"
+      },
+      {
+        "name": "Transformação",
+        "type": "ultimate",
+        "description": "Transformação: O Despertar da Calamidade (災厄覚醒, Wazaku Kakusei)\n\nQuando Pralaya decide que é hora de acabar com uma luta ou causar uma destruição em massa, ele \"desperta\".\n\n· Aparência Transformada:\n  · Seus dreads se erguem e se tornam vermelhos incandescentes, como lava fluindo, brilhando intensamente. Eles agora parecem ser feitos de pura energia de destruição contida.\n  · As fissuras em sua pele se alargam e o brilho vermelho interno torna-se tão forte que ele parece uma rede de raios ou veias de lava pulsante em um corpo escuro.\n  · Sua aura vermelha expande-se violentamente, tornando-se uma tempestade turbulenta e sangrenta que obscurece o céu e começa a desintegrar o ambiente ao seu redor.\n  · Seus olhos disparam feixes contínuos de energia vermelha pura, como faróis da destruição.\n· Poder na Transformação:\n  · A Absorção e Reflexão torna-se instantânea e automática. Ele não precisa mais nem mesmo se concentrar; o universo simplesmente se recusa a machucá-lo, redirecionando toda a energia para seu núcleo.\n  · Sua liberação de energia não é mais \"em dobro\", mas exponencial, limitada apenas pela quantidade de energia que ele absorveu recentemente.\n  · Ele pode liberar sua energia acumulada em um único e cataclísmico pulso de destruição (類似 a uma supernova) que varre tudo em um vasto raio, deixando apenas o vácuo e partículas elementares para trás.",
+        "cost": "Vida",
+        "damage": "200%"
+      }
+    ],
+    "theme": {
+      "youtube": "https://www.youtube.com/watch?v=aFC7y6Ao3Ug",
+      "title": "Tema",
+      "artist": "PRALAYA ATO 1"
+    },
+    "gallery": [
+      {
+        "src": "./images/pralaya-ato-1-mwsh434q-g1.jpg"
+      },
+      {
+        "src": "./images/pralaya-ato-1-mwsh434q-g2.jpg"
+      },
+      {
+        "src": "./images/pralaya-ato-1-mwsh434q-g3.jpg"
+      }
+    ]
   }
 ]
