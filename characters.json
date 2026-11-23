@@ -3,7 +3,7 @@
     "id": 1,
     "name": "Astraeus O Berserker das Supernovas",
     "rarity": "calamidades",
-    "image": "./images/astraeus-o-berserker-das-supernovas-mwsfyth3.jpg",
+    "image": "./images/astraeus-o-berserker-das-supernovas-mwsl20oi.jpg",
     "emoji": "🗡️",
     "stats": {
       "power": 95,
@@ -56,16 +56,16 @@
       }
     ],
     "theme": {
-      "youtube": "https://www.youtube.com/watch?v=9KmYFY5oOvM",
+      "youtube": "https://www.youtube.com/watch?v=qUf9RLRoRYs",
       "title": "TEMA",
       "artist": "ASTREUS"
     },
     "gallery": [
       {
-        "src": "./images/astraeus-o-berserker-das-supernovas-mwsfyth3-g1.jpg"
+        "src": "./images/astraeus-o-berserker-das-supernovas-mwsfyth3-g2.jpg"
       },
       {
-        "src": "./images/astraeus-o-berserker-das-supernovas-mwsfyth3-g2.jpg"
+        "src": "./images/astraeus-o-berserker-das-supernovas-mwsl20oi-g2.jpg"
       },
       {
         "src": "./images/astraeus-o-berserker-das-supernovas-mwsfyth3-g3.jpg"
